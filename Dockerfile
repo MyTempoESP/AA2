@@ -28,7 +28,7 @@ FROM alpine:3.14
 # RUN apk --no-cache add ca-certificates
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/Analytics /usr/local/bin/Analytics
+COPY --from=builder /app/AA2 /usr/local/bin/AA2
 
 # Command to run the executable
-CMD ["/usr/local/bin/Analytics"]
+CMD ["/usr/local/bin/AA2"]
