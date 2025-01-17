@@ -16,7 +16,7 @@ RUN go mod tidy
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o Analytics
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o AA2
 
 # Use a smaller base image for the final container
 #FROM debian:buster-slim
