@@ -34,7 +34,7 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Start()
 
-	f.Query("BYE")
+	f.Query("WRD")
 
 	display.Forth = &f
 
