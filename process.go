@@ -59,7 +59,7 @@ func (a *Ay) Process() {
 	var readerState atomic.Bool
 	//var readerPing atomic.Int64
 
-	go pinger.NewPinger(readerIP, &readerState, nil)
+	//go pinger.NewPinger(readerIP, &readerState, nil)
 
 	var wifiIP = os.Getenv("MYTEMPO_API_URL")
 	var wifiState atomic.Bool
