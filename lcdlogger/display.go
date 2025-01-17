@@ -34,6 +34,8 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Start()
 
+	f.Query("BYE")
+
 	display.Forth = &f
 
 	f.Send("VAR bac")
@@ -60,7 +62,7 @@ func (display *SerialDisplay) SwitchScreens() {
 	if res[0] == '-' && !display.switchButtonToggled {
 
 		display.Screen++
-		display.Screen %= 4
+		display.Screen %= SCREEN_COUNT
 
 		display.switchButtonToggled = true
 	}

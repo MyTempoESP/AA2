@@ -2,6 +2,7 @@ package lcdlogger
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/MyTempoesp/flick"
 )
@@ -11,6 +12,9 @@ const (
 	SCREEN_ADDR
 	SCREEN_WIFI
 	SCREEN_STAT
+	SCREEN_TIME
+
+	SCREEN_COUNT
 )
 
 type IPOctets [4]int
@@ -32,7 +36,7 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas i
 	)
 }
 
-func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ping int64, ip IPOctets, leitorOk int) {
+func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leitorOk int) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
@@ -49,19 +53,19 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ping int64, ip IPO
 	)
 }
 
-func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif int) {
+func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif int, wifiPing int64) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl %d val"+
 				" %d lbl %d val"+
-				" %d lbl %d val",
+				" %d lbl %d num",
 
 			flick.PORTAL, nome,
 			flick.WIFI, wifiVerif,
 			flick.LTE4G, LTE4GVerif,
-			flick.COMUNICANDO, commVerif,
+			flick.PING, wifiPing,
 		),
 	)
 }
@@ -82,6 +86,23 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 			a3.Value, a3.Magnitude,
 			a2.Value, a2.Magnitude,
 			a1.Value, a1.Magnitude,
+			flick.COMUNICANDO, commVerif,
+		),
+	)
+}
+
+func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
+
+	now := time.Now()
+
+	display.Forth.Send(
+		fmt.Sprintf(
+			"%d lbl %d num"+
+				" tim %d %d %d hms"+
+				" %d lbl %d val",
+
+			flick.PORTAL, nome,
+			now.Hour(), now.Minute(), now.Second(),
 			flick.COMUNICANDO, commVerif,
 		),
 	)

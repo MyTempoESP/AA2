@@ -1,15 +1,14 @@
 package main
 
 import (
-	"log"
 	"os"
 	"sync/atomic"
 	"time"
 
-	"analytics/intSet"
-	"analytics/lcdlogger"
+	"aa2/intSet"
+	"aa2/lcdlogger"
+	"aa2/pinger"
 	"github.com/MyTempoesp/flick"
-	"github.com/prometheus-community/pro-bing"
 )
 
 func (a *Ay) Process() {
@@ -57,9 +56,16 @@ func (a *Ay) Process() {
 
 	var readerIP = os.Getenv("READER_IP")
 	var readerOctets = lcdlogger.IPIfy(readerIP)
-
 	var readerState atomic.Bool
-	var readerPing atomic.Int64
+	//var readerPing atomic.Int64
+
+	go pinger.NewPinger(readerIP, &readerState, nil)
+
+	var wifiIP = os.Getenv("MYTEMPO_API_URL")
+	var wifiState atomic.Bool
+	var wifiPing atomic.Int64
+
+	go pinger.NewPinger(wifiIP, &wifiState, &wifiPing)
 
 	display, displayErr := lcdlogger.NewSerialDisplay()
 
@@ -68,38 +74,6 @@ func (a *Ay) Process() {
 
 		return
 	}
-
-	go func() {
-
-		p, err := probing.NewPinger(readerIP)
-
-		//p.SetPrivileged(true)
-
-		if err != nil {
-
-			return
-		}
-
-		p.Count = 0xFFFE
-		p.Interval = 4 * time.Second
-
-		p.OnSend = func(pkt *probing.Packet) {
-
-			log.Printf("IP Addr: %s\n", pkt.IPAddr)
-
-			readerState.Store(false)
-		}
-
-		p.OnRecv = func(pkt *probing.Packet) {
-
-			log.Printf("IP Addr: %s receive, RTT: %v\n", pkt.IPAddr, pkt.Rtt)
-
-			readerState.Store(true)
-			readerPing.Store(pkt.Rtt.Milliseconds())
-		}
-
-		p.Run()
-	}()
 
 	go func() {
 
@@ -129,7 +103,6 @@ func (a *Ay) Process() {
 				display.ScreenAddr(
 					NUM_EQUIP,
 					commVerif,
-					readerPing.Load(),
 					/* IP */ readerOctets,
 					/* leitor OK? */ ok,
 				)
@@ -139,6 +112,7 @@ func (a *Ay) Process() {
 					commVerif,
 					/* WIFI */ flick.CONECTAD,
 					/* 4G */ flick.DESLIGAD,
+					wifiPing.Load(),
 				)
 			case lcdlogger.SCREEN_STAT:
 				display.ScreenStat(
@@ -148,6 +122,11 @@ func (a *Ay) Process() {
 					lcdlogger.ToForthNumber(antennas[1].Load()),
 					lcdlogger.ToForthNumber(antennas[2].Load()),
 					lcdlogger.ToForthNumber(antennas[3].Load()),
+				)
+			case lcdlogger.SCREEN_TIME:
+				display.ScreenTime(
+					NUM_EQUIP,
+					commVerif,
 				)
 			}
 
