@@ -99,11 +99,11 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" tim %d %d %d hms"+
-				" %d num"+
+				" 6 lbl %d num"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			now.Hour(), now.Minute(), now.Second(),
+			now.Minute(), now.Second(), now.Hour(),
 			now.Day(),
 			flick.COMUNICANDO, commVerif,
 		),
