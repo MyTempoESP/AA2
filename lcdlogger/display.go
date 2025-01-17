@@ -62,7 +62,7 @@ func (display *SerialDisplay) SwitchScreens() {
 	if res[0] == '-' && !display.switchButtonToggled {
 
 		display.Screen++
-		display.Screen %= SCREEN_COUNT
+		display.Screen %= 5
 
 		display.switchButtonToggled = true
 	}
