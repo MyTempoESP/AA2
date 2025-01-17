@@ -60,7 +60,7 @@ func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif 
 			"%d lbl %d num"+
 				" %d lbl %d val"+
 				" %d lbl %d val"+
-				" %d lbl %d num",
+				" %d lbl %d ms",
 
 			flick.PORTAL, nome,
 			flick.WIFI, wifiVerif,
@@ -103,7 +103,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			now.Minute(), now.Second(), now.Hour(),
+			now.Second(), now.Minute(), now.Hour(),
 			now.Day(),
 			flick.COMUNICANDO, commVerif,
 		),
