@@ -36,12 +36,15 @@ const char* values[] = {
 };
 
 const char code[] PROGMEM =          ///< define preload Forth code here
+
+// Button.fth
 "VAR bac\n"
 "VAR bst\n"
 ": btn 7 IN 0 = ;\n"
 ": chb bac @ NOT IF bst @ btn DUP ROT SWP NOT AND bac ! bst ! THN ;\n"
 "10 0 TMI chb 1 TME\n"
 
+// Screen.fth
 ": lbl 5 API ;\n"
 ": fwd 2 API ;\n"
 ": lit API fwd ;\n"
@@ -180,7 +183,7 @@ void forth_ip() {
 
 void forth_number() {
 
-  lcd.print(n4_pop());
+  print_forthNumber();
 }
 
 void forth_label() {

@@ -18,20 +18,29 @@ const (
 	SCREEN_COUNT
 )
 
+const (
+	LABEL_EXTRA_ASK = iota + flick.LABELS_COUNT
+	LABEL_EXTRA_AS2
+)
+
 type IPOctets [4]int
 
-func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas int64) {
+func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas ForthNumber) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" %d lbl %d num"+
-				" %d lbl %d num"+
+				" %d lbl"+
+				/*   */ " %d %d"+ // Tags Val+Mag
+
+				" %d lbl"+
+				/*   */ " %d %d"+ // TagsUnicas Val+Mag
+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			flick.REGIST, tags,
-			flick.UNICAS, tagsUnicas,
+			flick.REGIST, tags.Value, tags.Magnitude,
+			flick.UNICAS, tagsUnicas.Value, tags.Magnitude,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
@@ -128,19 +137,5 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int) {
 			now.Day(),
 			flick.COMUNICANDO, commVerif,
 		),
-	)
-}
-
-func (display *SerialDisplay) ToggleDialog() {
-
-	display.Forth.Send(
-		"dia @ NOT dia !", // dia (DIAlog) @ (fetch var) NOT dia ! (set var)
-	)
-}
-
-func (display *SerialDisplay) ScreenYN() {
-
-	display.Forth.Send(
-		"<cr> ask fwd as2 <cr>",
 	)
 }

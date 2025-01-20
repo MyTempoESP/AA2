@@ -88,8 +88,8 @@ func (a *Ay) Process() {
 				display.ScreenTags(
 					NUM_EQUIP,
 					commVerif,
-					/* Tags */ tags.Load(),
-					/* Atletas */ tagSet.Count(),
+					/* Tags */ lcdlogger.ToForthNumber(tags.Load()),
+					/* Atletas */ lcdlogger.ToForthNumber(tagSet.Count()),
 				)
 			case lcdlogger.SCREEN_ADDR:
 
