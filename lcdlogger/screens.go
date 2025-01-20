@@ -111,6 +111,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	)
 }
 
+// interactive shit
 func (display *SerialDisplay) ScreenUSB(nome, commVerif int) {
 
 	now := time.Now()
@@ -127,5 +128,19 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int) {
 			now.Day(),
 			flick.COMUNICANDO, commVerif,
 		),
+	)
+}
+
+func (display *SerialDisplay) ToggleDialog() {
+
+	display.Forth.Send(
+		"dia @ NOT dia !", // dia (DIAlog) @ (fetch var) NOT dia ! (set var)
+	)
+}
+
+func (display *SerialDisplay) ScreenYN() {
+
+	display.Forth.Send(
+		"<cr> ask fwd as2 <cr>",
 	)
 }

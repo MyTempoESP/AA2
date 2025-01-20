@@ -32,12 +32,6 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Query("1 .")
 
-	f.Send("VAR bac")
-	f.Send("VAR bst")
-	f.Send(": btn 7 IN 0 = ;")
-	f.Send(": chb bac @ NOT IF bst @ btn DUP ROT SWP NOT AND bac ! bst ! THN ;")
-	f.Send("10 0 TMI chb 1 TME")
-
 	display.Forth = &f
 	display.action = -1
 
