@@ -2,6 +2,7 @@ package lcdlogger
 
 import (
 	"log"
+	"time"
 
 	"github.com/MyTempoesp/flick"
 )
@@ -12,7 +13,8 @@ type SerialDisplay struct {
 
 	action int
 
-	actionButtonHeld bool
+	actionButtonLHTime time.Time // Last Held Timestamp
+	actionButtonHeld   bool
 }
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
@@ -28,7 +30,7 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Start()
 
-	f.Query("WRD")
+	f.Query("1 .")
 
 	display.Forth = &f
 
@@ -46,19 +48,29 @@ func (display *SerialDisplay) SwitchScreens() {
 	// TODO: onrelease actions
 
 	res, err := display.Forth.Send("bac @ .")
-	defer display.Forth.Send("0 bac !")
 
 	if err != nil {
 
 		return
 	}
 
+	defer display.Forth.Send("0 bac !")
+
 	if res[0] == '-' { // onrelease
+
+		display.actionButtonHeld = false // button released
+
+		lht := display.actionButtonLHTime
+
+		if lht.After(lht.Add(time.Second * 2)) { // XXX: magic number
+
+			display.action = display.Screen
+
+			return
+		}
 
 		display.Screen++
 		display.Screen %= 5
-
-		display.actionButtonHeld = false // button released
 	}
 }
 
@@ -70,14 +82,14 @@ func (display *SerialDisplay) Action() (action int, hasAction bool) {
 	return
 }
 
-func (display *SerialDisplay) SetAction() {
+func (display *SerialDisplay) HandleActionButton() {
 
-	if _, hasAction := display.Action(); hasAction {
+	if display.actionButtonHeld {
 
 		return
 	}
 
-	if display.actionButtonHeld {
+	if _, hasAction := display.Action(); hasAction {
 
 		return
 	}
@@ -91,6 +103,7 @@ func (display *SerialDisplay) SetAction() {
 
 	if res[0] == '-' {
 
+		display.actionButtonLHTime = time.Now()
 		display.actionButtonHeld = true
 	}
 }

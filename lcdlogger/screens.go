@@ -92,7 +92,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 	)
 }
 
-func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
+func (display *SerialDisplay) ScreenTime(nome, commVerif int, button int) {
 
 	now := time.Now()
 
@@ -106,7 +106,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 			flick.PORTAL, nome,
 			now.Second(), now.Minute(), now.Hour(),
-			now.Day(),
+			button,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
