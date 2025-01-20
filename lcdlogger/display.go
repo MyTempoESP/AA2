@@ -12,8 +12,8 @@ type SerialDisplay struct {
 
 	action int
 
-	switchButtonToggled bool
-	actionButtonHeld    bool
+	//switchButtonToggled bool
+	actionButtonHeld bool
 }
 
 //func newForth() (f *flick.MyTempo_Forth, err error) {
@@ -78,7 +78,7 @@ func (display *SerialDisplay) SwitchScreens() {
 		return
 	}
 
-	if res[0] == '-' && !display.switchButtonToggled { // onrelease
+	if res[0] == '-' { // onrelease
 
 		display.Screen++
 		display.Screen %= 5
