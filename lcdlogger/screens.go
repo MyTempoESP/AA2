@@ -99,7 +99,8 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	display.Forth.Send(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" tim %d %d %d hms"+
+				" tim %d %d"+
+				" %d 3 - hms"+ // We at GMT-3
 				" 6 lbl %d num"+
 				" %d lbl %d val",
 
