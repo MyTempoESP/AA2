@@ -62,6 +62,8 @@ func (display *SerialDisplay) SwitchScreens() {
 
 		lht := display.actionButtonLHTime
 
+		log.Println("Release detected: ", time.Now(), lht)
+
 		if time.Now().After(lht.Add(time.Second * 2)) { // XXX: magic number
 
 			display.action = display.Screen
@@ -102,6 +104,8 @@ func (display *SerialDisplay) HandleActionButton() {
 	}
 
 	if res[0] == '-' {
+
+		log.Println("Click detected: ", time.Now())
 
 		display.actionButtonLHTime = time.Now()
 		display.actionButtonHeld = true
