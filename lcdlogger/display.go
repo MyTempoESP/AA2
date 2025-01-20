@@ -12,33 +12,8 @@ type SerialDisplay struct {
 
 	action int
 
-	//switchButtonToggled bool
 	actionButtonHeld bool
 }
-
-//func newForth() (f *flick.MyTempo_Forth, err error) {
-//
-//forth, err := flick.NewForth("/dev/ttyUSB1")
-//
-//if err != nil {
-//
-//goto USB0
-//}
-//
-//f = &forth
-//
-//USB0:
-//forth, err = flick.NewForth("/dev/ttyUSB0")
-//
-//if err != nil {
-//
-//return
-//}
-//
-//f = &forth
-//
-//return
-//}
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
@@ -83,14 +58,8 @@ func (display *SerialDisplay) SwitchScreens() {
 		display.Screen++
 		display.Screen %= 5
 
-		//display.switchButtonToggled = true
 		display.actionButtonHeld = false // button released
 	}
-
-	/*if res[0] == '0' && display.switchButtonToggled {
-
-		display.switchButtonToggled = false
-	}*/
 }
 
 func (display *SerialDisplay) Action() (action int, hasAction bool) {
