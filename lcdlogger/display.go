@@ -15,33 +15,33 @@ type SerialDisplay struct {
 	switchButtonToggled bool
 }
 
-func newForth() (f *flick.MyTempo_Forth, err error) {
-
-	forth, err := flick.NewForth("/dev/ttyUSB1")
-
-	if err != nil {
-
-		goto USB0
-	}
-
-	f = &forth
-
-USB0:
-	forth, err = flick.NewForth("/dev/ttyUSB0")
-
-	if err != nil {
-
-		return
-	}
-
-	f = &forth
-
-	return
-}
+//func newForth() (f *flick.MyTempo_Forth, err error) {
+//
+//forth, err := flick.NewForth("/dev/ttyUSB1")
+//
+//if err != nil {
+//
+//goto USB0
+//}
+//
+//f = &forth
+//
+//USB0:
+//forth, err = flick.NewForth("/dev/ttyUSB0")
+//
+//if err != nil {
+//
+//return
+//}
+//
+//f = &forth
+//
+//return
+//}
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := newForth()
+	f, err := flick.NewForth("/dev/ttyUSB0")
 
 	if err != nil {
 
@@ -54,7 +54,7 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Query("WRD")
 
-	display.Forth = f
+	display.Forth = &f
 
 	f.Send("VAR bac")
 	f.Send("VAR bst")
