@@ -6,17 +6,11 @@ import (
 	"github.com/MyTempoesp/flick"
 )
 
-type DisplayInfo struct {
-	tags_unica, tags_total int64
-	addr_equip, read_verif int
-	nome_equip, comm_verif int
-	wifi_verif, lt4g_verif int
-}
-
 type SerialDisplay struct {
-	Info   <-chan DisplayInfo
 	Forth  *flick.MyTempo_Forth
 	Screen int
+
+	action int
 
 	switchButtonToggled bool
 }
@@ -70,5 +64,31 @@ func (display *SerialDisplay) SwitchScreens() {
 	if res[0] == '0' && display.switchButtonToggled {
 
 		display.switchButtonToggled = false
+	}
+}
+
+func (display *SerialDisplay) Action() (action int, hasAction bool) {
+
+	action = display.action
+	hasAction = display.action != -1
+
+	return
+}
+
+func (display *SerialDisplay) SetAction() {
+
+	if _, hasAction := display.Action(); hasAction {
+
+		return
+	}
+
+	res, err := display.Forth.Send("bst @ .")
+
+	if err != nil {
+
+		return
+	}
+
+	if res[0] == '-' {
 	}
 }

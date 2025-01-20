@@ -13,6 +13,7 @@ const (
 	SCREEN_WIFI
 	SCREEN_STAT
 	SCREEN_TIME
+	SCREEN_USB
 
 	SCREEN_COUNT
 )
@@ -92,6 +93,25 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 }
 
 func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
+
+	now := time.Now()
+
+	display.Forth.Send(
+		fmt.Sprintf(
+			"%d lbl %d num"+
+				" tim %d %d %d hms"+
+				" 6 lbl %d num"+
+				" %d lbl %d val",
+
+			flick.PORTAL, nome,
+			now.Second(), now.Minute(), now.Hour(),
+			now.Day(),
+			flick.COMUNICANDO, commVerif,
+		),
+	)
+}
+
+func (display *SerialDisplay) ScreenUSB(nome, commVerif int) {
 
 	now := time.Now()
 

@@ -128,11 +128,16 @@ func (a *Ay) Process() {
 					NUM_EQUIP,
 					commVerif,
 				)
+			case lcdlogger.SCREEN_USB:
+				display.ScreenUSB(
+					NUM_EQUIP,
+					commVerif,
+				)
 			}
 
 			display.SwitchScreens()
 
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}()
 }
