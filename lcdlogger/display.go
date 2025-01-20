@@ -65,7 +65,7 @@ func (display *SerialDisplay) SwitchScreens() {
 
 		log.Println("Release detected: ", time.Now(), lht)
 
-		if time.Now().After(lht.Add(time.Second * 2)) { // XXX: magic number
+		if time.Now().After(lht.Add(time.Millisecond * 700)) { // XXX: magic number
 
 			display.action = display.Screen
 
@@ -73,7 +73,7 @@ func (display *SerialDisplay) SwitchScreens() {
 		}
 
 		display.Screen++
-		display.Screen %= 5
+		display.Screen %= SCREEN_COUNT
 	}
 }
 

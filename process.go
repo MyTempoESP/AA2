@@ -124,12 +124,9 @@ func (a *Ay) Process() {
 					lcdlogger.ToForthNumber(antennas[3].Load()),
 				)
 			case lcdlogger.SCREEN_TIME:
-				ac, _ := display.Action()
-
 				display.ScreenTime(
 					NUM_EQUIP,
 					commVerif,
-					ac,
 				)
 			case lcdlogger.SCREEN_USB:
 				display.ScreenUSB(

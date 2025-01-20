@@ -92,7 +92,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 	)
 }
 
-func (display *SerialDisplay) ScreenTime(nome, commVerif int, button int) {
+func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 	now := time.Now()
 
@@ -101,12 +101,11 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int, button int) {
 			"%d lbl %d num"+
 				" tim %d %d"+
 				" %d 3 - hms"+ // We at GMT-3
-				" 6 lbl %d num"+
+				" <cr>"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
 			now.Second(), now.Minute(), now.Hour(),
-			button,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
