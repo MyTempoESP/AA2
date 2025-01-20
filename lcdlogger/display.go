@@ -8,9 +8,9 @@ import (
 )
 
 type SerialDisplay struct {
-	Forth  *flick.MyTempo_Forth
-	Screen int
+	Forth *flick.MyTempo_Forth
 
+	Screen int
 	action int
 
 	actionButtonLHTime time.Time // Last Held Timestamp
@@ -32,13 +32,14 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 
 	f.Query("1 .")
 
-	display.Forth = &f
-
 	f.Send("VAR bac")
 	f.Send("VAR bst")
 	f.Send(": btn 7 IN 0 = ;")
 	f.Send(": chb bac @ NOT IF bst @ btn DUP ROT SWP NOT AND bac ! bst ! THN ;")
 	f.Send("10 0 TMI chb 1 TME")
+
+	display.Forth = &f
+	display.action = -1
 
 	return
 }
@@ -79,9 +80,19 @@ func (display *SerialDisplay) SwitchScreens() {
 func (display *SerialDisplay) Action() (action int, hasAction bool) {
 
 	action = display.action
-	hasAction = display.action != -1
+
+	if action >= 0 {
+
+		hasAction = true
+		display.action = -1
+	}
 
 	return
+}
+
+func (display *SerialDisplay) hasAction() bool {
+
+	return display.action >= 0
 }
 
 func (display *SerialDisplay) HandleActionButton() {
@@ -91,7 +102,7 @@ func (display *SerialDisplay) HandleActionButton() {
 		return
 	}
 
-	if _, hasAction := display.Action(); hasAction {
+	if display.hasAction() {
 
 		return
 	}
