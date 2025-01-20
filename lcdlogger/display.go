@@ -11,10 +11,10 @@ type SerialDisplay struct {
 	Forth *flick.MyTempo_Forth
 
 	Screen int
-	action int
 
 	actionButtonLHTime time.Time // Last Held Timestamp
 	actionButtonHeld   bool
+	action             Action
 }
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
@@ -61,58 +61,12 @@ func (display *SerialDisplay) SwitchScreens() {
 
 		if time.Now().After(lht.Add(time.Millisecond * 700)) { // XXX: magic number
 
-			display.action = display.Screen
+			display.action = Action(display.Screen)
 
 			return
 		}
 
 		display.Screen++
 		display.Screen %= SCREEN_COUNT
-	}
-}
-
-func (display *SerialDisplay) Action() (action int, hasAction bool) {
-
-	action = display.action
-
-	if action >= 0 {
-
-		hasAction = true
-		display.action = -1
-	}
-
-	return
-}
-
-func (display *SerialDisplay) hasAction() bool {
-
-	return display.action >= 0
-}
-
-func (display *SerialDisplay) HandleActionButton() {
-
-	if display.actionButtonHeld {
-
-		return
-	}
-
-	if display.hasAction() {
-
-		return
-	}
-
-	res, err := display.Forth.Send("bst @ .")
-
-	if err != nil {
-
-		return
-	}
-
-	if res[0] == '-' {
-
-		log.Println("Click detected: ", time.Now())
-
-		display.actionButtonLHTime = time.Now()
-		display.actionButtonHeld = true
 	}
 }

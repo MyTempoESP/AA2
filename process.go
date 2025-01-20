@@ -8,6 +8,7 @@ import (
 	"aa2/intSet"
 	"aa2/lcdlogger"
 	"aa2/pinger"
+	"aa2/usb"
 	"github.com/MyTempoesp/flick"
 )
 
@@ -53,6 +54,8 @@ func (a *Ay) Process() {
 		}
 
 	*/
+
+	var usbDevices = usb.NewUSBDeviceCache(10 * time.Second)
 
 	var readerIP = os.Getenv("READER_IP")
 	var readerOctets = lcdlogger.IPIfy(readerIP)
@@ -129,14 +132,27 @@ func (a *Ay) Process() {
 					commVerif,
 				)
 			case lcdlogger.SCREEN_USB:
+				device, err := usbDevices.Get()
+
+				if err != nil {
+
+					continue
+				}
+
 				display.ScreenUSB(
 					NUM_EQUIP,
 					commVerif,
+					device,
 				)
 			}
 
 			display.HandleActionButton()
 			display.SwitchScreens()
+
+			if action, hasAction := display.Action(); hasAction {
+
+				display.Do(action)
+			}
 
 			time.Sleep(50 * time.Millisecond)
 		}

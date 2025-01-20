@@ -16,11 +16,9 @@ const (
 	SCREEN_USB
 
 	SCREEN_COUNT
-)
 
-const (
-	LABEL_EXTRA_ASK = iota + flick.LABELS_COUNT
-	LABEL_EXTRA_AS2
+	SCREEN_EXTRA_USB_PROGRESS
+	SCREEN_EXTRA_WIFI_PROGRESS
 )
 
 type IPOctets [4]int
@@ -31,10 +29,10 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl"+
-				/*   */ " %d %d"+ // Tags Val+Mag
+				" %d %d"+ // Tags Val+Mag
 
 				" %d lbl"+
-				/*   */ " %d %d"+ // TagsUnicas Val+Mag
+				" %d %d"+ // TagsUnicas Val+Mag
 
 				" %d lbl %d val",
 
@@ -108,9 +106,19 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	display.Forth.Send(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" tim %d %d"+
-				" %d 3 - hms"+ // We at GMT-3
+
+				// display Time label
+				"tim"+
+
+				// Seconds, Minutes
+				" %d %d"+
+
+				// Hours, -3 cuz we at GMT-3
+				" %d 3 - hms"+
+
+				// skip line
 				" <cr>"+
+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
@@ -120,21 +128,16 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	)
 }
 
-// interactive shit
-func (display *SerialDisplay) ScreenUSB(nome, commVerif int) {
-
-	now := time.Now()
+func (display *SerialDisplay) ScreenUSB(nome, commVerif int, device string) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" tim %d %d %d hms"+
-				" 6 lbl %d num"+
+				"%s"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			now.Second(), now.Minute(), now.Hour(),
-			now.Day(),
+			device,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
