@@ -17,7 +17,7 @@ type SerialDisplay struct {
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := flick.NewForth("/dev/ttyUSB0")
+	f, err := flick.NewForth("/dev/ttyUSB1")
 
 	if err != nil {
 
