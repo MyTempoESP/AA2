@@ -27,7 +27,7 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
+			"%d lbl %d 0 num"+
 				" %d lbl"+
 				" %d %d num"+ // Tags Val+Mag
 
@@ -48,7 +48,7 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leito
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
+			"%d lbl %d 0 num"+
 				" %d lbl %d %d %d %d ip"+
 				" %d lbl %d val"+
 				" %d lbl %d val",
@@ -65,7 +65,7 @@ func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif 
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
+			"%d lbl %d 0 num"+
 				" %d lbl %d val"+
 				" %d lbl %d val"+
 				" %d lbl %d ms",
@@ -82,7 +82,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
+			"%d lbl %d 0 num"+
 				" %d %d"+ // A4 Val+Mag
 				" %d %d"+ // A3 Val+Mag
 				" %d %d"+ // A2 Val+Mag
@@ -105,7 +105,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
+			"%d lbl %d 0 num"+
 
 				// display Time label
 				"tim"+
@@ -132,12 +132,10 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int, device string) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num"+
-				"%s"+
+			"%d lbl %d 0 num <cr> <cr>"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			device,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
