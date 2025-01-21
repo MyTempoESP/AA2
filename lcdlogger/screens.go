@@ -29,10 +29,10 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl"+
-				" %d %d"+ // Tags Val+Mag
+				" %d %d num"+ // Tags Val+Mag
 
 				" %d lbl"+
-				" %d %d"+ // TagsUnicas Val+Mag
+				" %d %d num"+ // TagsUnicas Val+Mag
 
 				" %d lbl %d val",
 
