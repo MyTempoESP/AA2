@@ -5,13 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type USBObserver struct {
-	mu     sync.Mutex
-	device string
+	device atomic.Bool
 }
 
 func NewUSBObserver() (observer USBObserver) {
@@ -19,24 +18,20 @@ func NewUSBObserver() (observer USBObserver) {
 	go func() {
 
 		<-time.After(5 * time.Second)
+		hasDev, _ := CheckUSBStorageDevice()
 
-		observer.mu.Lock()
-		observer.device, _ = GetUSBStorageDevice()
-		observer.mu.Unlock()
+		observer.device.Store(hasDev)
 	}()
 
 	return
 }
 
-func (observer *USBObserver) Get() string {
+func (observer *USBObserver) Get() bool {
 
-	observer.mu.Lock()
-	defer observer.mu.Unlock()
-
-	return observer.device
+	return observer.device.Load()
 }
 
-func GetUSBStorageDevice() (device string, err error) {
+func CheckUSBStorageDevice() (check bool, err error) {
 
 	const sysBlockPath = "/sys/block/"
 
@@ -54,11 +49,6 @@ func GetUSBStorageDevice() (device string, err error) {
 
 		var realPath string
 
-		if !dev.IsDir() {
-
-			continue
-		}
-
 		devicePath := filepath.Join(sysBlockPath, dev.Name())
 		deviceFile := filepath.Join(devicePath, "device")
 		realPath, err = filepath.EvalSymlinks(deviceFile)
@@ -66,7 +56,8 @@ func GetUSBStorageDevice() (device string, err error) {
 		// USB devices will have "usb" in their symlink path
 		if err == nil && strings.Contains(realPath, "/usb") {
 
-			device = "/dev/" + dev.Name()
+			//device = "/dev/" + dev.Name()
+			check = true
 
 			return
 		}

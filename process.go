@@ -136,7 +136,7 @@ func (a *Ay) Process() {
 
 				devVerif := flick.X
 
-				if device != "" {
+				if device {
 
 					devVerif = flick.CONECTAD
 				}
