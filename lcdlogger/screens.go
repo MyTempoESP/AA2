@@ -108,7 +108,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 			"%d lbl %d num"+
 
 				// display Time label
-				"tim"+
+				" tim"+
 
 				// Seconds, Minutes
 				" %d %d"+
