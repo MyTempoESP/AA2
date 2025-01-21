@@ -4,7 +4,7 @@
 //#include <HardwareSerial.h>
 #include <nanoFORTH.h>
 
-#define LABEL_COUNT 12
+#define LABEL_COUNT 13
 
 const char* labels[] = {
   "PORTAL   My",
@@ -18,10 +18,11 @@ const char* labels[] = {
   "LOCAL: ",
   "PROVA: ",
   "PING: ",
-  "HORA: "
+  "HORA: ",
+  "USB: "
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6
+  11,9,9,12,7,8,6,4,7,7,6,6,5
 };
 
 #define VALUE_COUNT 4
@@ -56,6 +57,7 @@ const char code[] PROGMEM =          ///< define preload Forth code here
 ": ms  3 lit ;\n"
 ": hms 256 ip ;\n"
 ": <cr> 999 lbl ;\n"
+": usb 12 lbl ;\n"
 ": tim 11 lbl ;\n";
 
 uint8_t g_x, g_y;

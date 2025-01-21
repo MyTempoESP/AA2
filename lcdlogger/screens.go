@@ -38,7 +38,7 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 
 			flick.PORTAL, nome,
 			flick.REGIST, tags.Value, tags.Magnitude,
-			flick.UNICAS, tagsUnicas.Value, tags.Magnitude,
+			flick.UNICAS, tagsUnicas.Value, tagsUnicas.Magnitude,
 			flick.COMUNICANDO, commVerif,
 		),
 	)
@@ -128,14 +128,17 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	)
 }
 
-func (display *SerialDisplay) ScreenUSB(nome, commVerif int, device string) {
+func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 
 	display.Forth.Send(
 		fmt.Sprintf(
-			"%d lbl %d num <cr> <cr>"+
+			"%d lbl %d num"+
+				" usb %d val"+
+				" <cr>"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
+			devVerif,
 			flick.COMUNICANDO, commVerif,
 		),
 	)

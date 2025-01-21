@@ -139,10 +139,17 @@ func (a *Ay) Process() {
 					continue
 				}
 
+				devVerif := flick.X
+
+				if device != "" {
+
+					devVerif = flick.CONECTAD
+				}
+
 				display.ScreenUSB(
 					NUM_EQUIP,
 					commVerif,
-					device,
+					devVerif,
 				)
 			}
 
