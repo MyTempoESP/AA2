@@ -3,6 +3,8 @@ package lcdlogger
 import (
 	"log"
 	"time"
+
+	"aa2/usb"
 )
 
 const (
@@ -62,5 +64,11 @@ func (display *SerialDisplay) Do(action Action) {
 	switch action {
 	case ACTION_USB:
 
+		err := usb.Mount("/dev/sdb", "/mnt")
+
+		if err != nil {
+
+			log.Println(err)
+		}
 	}
 }
