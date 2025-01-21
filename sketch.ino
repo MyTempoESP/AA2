@@ -48,6 +48,7 @@ const char code[] PROGMEM =          ///< define preload Forth code here
 ": lbl 5 API ;\n"
 ": fwd 2 API ;\n"
 ": lit API fwd ;\n"
+": fnm 0 lit ;\n"
 ": num 4 lit ;\n"
 ": val 6 lit ;\n"
 ": atn 1 lit ;\n"
@@ -69,6 +70,8 @@ void setup() {
   while(!Serial);
 
   n4_setup(code);
+
+  n4_api(0, print_forthNumber);
   n4_api(1, forth_antenna);
   n4_api(2, forth_fwd);
   n4_api(3, forth_millis);
@@ -183,7 +186,7 @@ void forth_ip() {
 
 void forth_number() {
 
-  print_forthNumber();
+	lcd.print(n4_pop());
 }
 
 void forth_label() {
