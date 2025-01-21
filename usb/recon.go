@@ -9,66 +9,33 @@ import (
 	"time"
 )
 
-// Cache structure for storing USB device data
-type USBDeviceCache struct {
-	mu         sync.RWMutex
-	device     string
-	lastUpdate time.Time
-	ttl        time.Duration
+type USBObserver struct {
+	mu     sync.Mutex
+	device string
 }
 
-// NewUSBDeviceCache creates a new cache instance
-func NewUSBDeviceCache(ttl time.Duration) *USBDeviceCache {
+func NewUSBObserver() (observer USBObserver) {
 
-	return &USBDeviceCache{
-		lastUpdate: time.Time{},
-		ttl:        ttl,
-	}
-}
+	go func() {
 
-// Get retrieves cached data if valid, otherwise refreshes it
-func (cache *USBDeviceCache) Get() (device string, err error) {
+		<-time.After(5 * time.Second)
 
-	cache.mu.RLock()
-
-	device = cache.device
-
-	if time.Since(cache.lastUpdate) < cache.ttl {
-
-		// Return cached devices if the cache is still valid
-		defer cache.mu.RUnlock()
-
-		return
-	}
-
-	cache.mu.RUnlock()
-
-	// Refresh the cache
-	cache.mu.Lock()
-
-	defer cache.mu.Unlock()
-
-	// Prevent concurrent refreshes
-	if time.Since(cache.lastUpdate) < cache.ttl {
-
-		return
-	}
-
-	// Fetch fresh data
-	device, err = GetUSBStorageDevice()
-
-	if err != nil {
-
-		return
-	}
-
-	cache.device = device
-	cache.lastUpdate = time.Now()
+		observer.mu.Lock()
+		observer.device, _ = GetUSBStorageDevice()
+		observer.mu.Unlock()
+	}()
 
 	return
 }
 
-// GetUSBStorageDevicesDetails returns details about USB storage devices connected to the system.
+func (observer *USBObserver) Get() string {
+
+	observer.mu.Lock()
+	defer observer.mu.Unlock()
+
+	return observer.device
+}
+
 func GetUSBStorageDevice() (device string, err error) {
 
 	const sysBlockPath = "/sys/block/"
