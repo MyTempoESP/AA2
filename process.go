@@ -55,7 +55,7 @@ func (a *Ay) Process() {
 
 	*/
 
-	var usbDevice = usb.NewUSBObserver()
+	var fs = usb.OSFileSystem{}
 
 	var readerIP = os.Getenv("READER_IP")
 	var readerOctets = lcdlogger.IPIfy(readerIP)
@@ -132,7 +132,12 @@ func (a *Ay) Process() {
 					commVerif,
 				)
 			case lcdlogger.SCREEN_USB:
-				device := usbDevice.Get()
+				device, err := usb.CheckUSBStorageDevice(fs)
+
+				if err != nil {
+
+					continue
+				}
 
 				devVerif := flick.X
 

@@ -2,51 +2,16 @@ package usb
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
-	"time"
 )
 
-type USBObserver struct {
-	device atomic.Bool
-}
-
-func NewUSBObserver() (observer USBObserver) {
-
-	go func() {
-
-		for {
-			<-time.After(5 * time.Second)
-			hasDev, err := CheckUSBStorageDevice()
-
-			if err != nil {
-
-				log.Println(err)
-
-				continue
-			}
-
-			observer.device.Store(hasDev)
-		}
-	}()
-
-	return
-}
-
-func (observer *USBObserver) Get() bool {
-
-	return observer.device.Load()
-}
-
-func CheckUSBStorageDevice() (check bool, err error) {
+func CheckUSBStorageDevice(fs FileSystem) (check bool, err error) {
 
 	const sysBlockPath = "/sys/block/"
 
 	// Read the contents of /sys/block
-	blockDevices, err := os.ReadDir(sysBlockPath)
+	blockDevices, err := fs.ReadDir(sysBlockPath)
 
 	if err != nil {
 
@@ -61,7 +26,7 @@ func CheckUSBStorageDevice() (check bool, err error) {
 
 		devicePath := filepath.Join(sysBlockPath, dev.Name())
 		deviceFile := filepath.Join(devicePath, "device")
-		realPath, err = filepath.EvalSymlinks(deviceFile)
+		realPath, err = fs.EvalSymlinks(deviceFile)
 
 		// USB devices will have "usb" in their symlink path
 		if err == nil && strings.Contains(realPath, "/usb") {
