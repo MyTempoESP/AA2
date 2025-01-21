@@ -2,6 +2,7 @@ package usb
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,10 +18,19 @@ func NewUSBObserver() (observer USBObserver) {
 
 	go func() {
 
-		<-time.After(5 * time.Second)
-		hasDev, _ := CheckUSBStorageDevice()
+		for {
+			<-time.After(5 * time.Second)
+			hasDev, err := CheckUSBStorageDevice()
 
-		observer.device.Store(hasDev)
+			if err != nil {
+
+				log.Println(err)
+
+				continue
+			}
+
+			observer.device.Store(hasDev)
+		}
 	}()
 
 	return
