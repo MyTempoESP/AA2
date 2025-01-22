@@ -1,10 +1,12 @@
 package main
 
 import (
+	"log"
 	"os"
 	"sync/atomic"
 	"time"
 
+	"aa2/file"
 	"aa2/intSet"
 	"aa2/lcdlogger"
 	"aa2/pinger"
@@ -20,6 +22,13 @@ func (a *Ay) Process() {
 	)
 
 	tagSet := intSet.New()
+
+	tagsFile, err := file.NewFile("tags")
+
+	if err != nil {
+
+		log.Println(err)
+	}
 
 	go func() {
 
@@ -38,6 +47,9 @@ func (a *Ay) Process() {
 			tags.Add(1)
 
 			tagSet.Insert(t.Epc)
+
+			//001000000000000036513:34:21.097
+			tagsFile.Insert(t.FormatoRefinado)
 		}
 	}()
 
@@ -50,12 +62,16 @@ func (a *Ay) Process() {
 		tagSet.Clear()
 		tags.Store(0)
 		for i := range 4 {
+
 			antennas[i].Store(0)
 		}
 
 	*/
 
-	var fs = usb.OSFileSystem{}
+	var device = usb.Device{}
+
+	device.Name = "/dev/sdb"
+	device.FS = usb.OSFileSystem{}
 
 	var readerIP = os.Getenv("READER_IP")
 	var readerOctets = lcdlogger.IPIfy(readerIP)
@@ -132,7 +148,7 @@ func (a *Ay) Process() {
 					commVerif,
 				)
 			case lcdlogger.SCREEN_USB:
-				device, err := usb.CheckUSBStorageDevice(fs)
+				devCheck, err := device.Check()
 
 				if err != nil {
 
@@ -141,7 +157,7 @@ func (a *Ay) Process() {
 
 				devVerif := flick.X
 
-				if device {
+				if devCheck {
 
 					devVerif = flick.CONECTAD
 				}
@@ -158,7 +174,10 @@ func (a *Ay) Process() {
 
 			if action, hasAction := display.Action(); hasAction {
 
-				display.Do(action)
+				switch action {
+				case lcdlogger.ACTION_USB:
+					CopyToUSB(device, tagsFile)
+				}
 			}
 
 			time.Sleep(50 * time.Millisecond)

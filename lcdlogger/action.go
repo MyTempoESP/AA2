@@ -1,10 +1,7 @@
 package lcdlogger
 
 import (
-	"log"
 	"time"
-
-	"aa2/usb"
 )
 
 const (
@@ -52,23 +49,7 @@ func (display *SerialDisplay) HandleActionButton() {
 
 	if res[0] == '-' {
 
-		log.Println("Click detected: ", time.Now())
-
 		display.actionButtonLHTime = time.Now()
 		display.actionButtonHeld = true
-	}
-}
-
-func (display *SerialDisplay) Do(action Action) {
-
-	switch action {
-	case ACTION_USB:
-
-		err := usb.Mount("/dev/sdb", "/mnt")
-
-		if err != nil {
-
-			log.Println(err)
-		}
 	}
 }

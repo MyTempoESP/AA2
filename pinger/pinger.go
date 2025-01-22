@@ -1,7 +1,6 @@
 package pinger
 
 import (
-	"log"
 	"sync/atomic"
 	"time"
 
@@ -25,14 +24,10 @@ func NewPinger(ip string, state *atomic.Bool, ping *atomic.Int64) {
 
 	p.OnSend = func(pkt *probing.Packet) {
 
-		log.Printf("IP Addr: %s\n", pkt.IPAddr)
-
 		state.Store(false)
 	}
 
 	p.OnRecv = func(pkt *probing.Packet) {
-
-		log.Printf("IP Addr: %s receive, RTT: %v\n", pkt.IPAddr, pkt.Rtt)
 
 		state.Store(true)
 

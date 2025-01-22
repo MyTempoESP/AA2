@@ -57,8 +57,6 @@ func (display *SerialDisplay) SwitchScreens() {
 
 		lht := display.actionButtonLHTime
 
-		log.Println("Release detected: ", time.Now(), lht)
-
 		if time.Now().After(lht.Add(time.Millisecond * 700)) { // XXX: magic number
 
 			display.action = Action(display.Screen)
