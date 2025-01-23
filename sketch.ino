@@ -200,6 +200,7 @@ void forth_label() {
 
   int v = n4_pop();
   if (v >= LABEL_COUNT || v < 0) {
+    current_labels[g_y] = v;
     forth_clear_line(0);
     forth_fwd();
     return;
