@@ -96,20 +96,15 @@ func (a *File) upload(dest string /* placeholder */) (err error) {
 
 	err = copyFile(a.Caminho, dest)
 
-	if err != nil {
-
-		return
-	}
-
-	err = a.file.Truncate(0)
-	_, err = a.file.Seek(0, 0)
+	//	err = a.file.Truncate(0)
+	//	_, err = a.file.Seek(0, 0)
 
 	return
 }
 
-func (a *File) Wait() (err error) {
+func (a *File) Wait() (report <-chan error) {
 
-	err = <-a.reportChannel
+	report = a.reportChannel
 
 	return
 }
