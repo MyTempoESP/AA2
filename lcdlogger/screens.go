@@ -149,7 +149,7 @@ func (display *SerialDisplay) ScreenProgress() {
 	display.Forth.Send(
 		fmt.Sprintf(
 			"<cr> <cr>" +
-				" 13 lbl <cr>",
+				" 13 lbl fwd <cr>",
 		),
 	)
 }
@@ -159,7 +159,7 @@ func (display *SerialDisplay) ScreenErr() {
 	display.Forth.Send(
 		fmt.Sprintf(
 			"<cr> <cr>" +
-				" 14 lbl fwd 15 lbl",
+				" 14 lbl fwd 15 lbl fwd",
 		),
 	)
 }
