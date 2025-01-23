@@ -3,21 +3,14 @@ package file
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
+	"sync"
 )
 
-type Op struct {
-	Nome string
-	Func func(string) error
-	Arg  string
-}
-
 type File struct {
+	mu     sync.Mutex
 	file   *os.File
 	writer *bufio.Writer
-
-	ops chan Op
 
 	reportChannel chan error
 
@@ -43,50 +36,20 @@ func NewFile(nome string) (a File, err error) {
 	return
 }
 
-func (a *File) Observe() {
+func (a *File) Insert(content string) (err error) {
 
-	a.ops = make(chan Op)
-	a.reportChannel = make(chan error)
-
-	for op := range a.ops {
-
-		err := op.Func(op.Arg)
-
-		if err != nil {
-
-			log.Println(err)
-		}
-
-		a.reportChannel <- err
-	}
-}
-
-func (a *File) Insert(content string) {
-
-	a.ops <- Op{
-		"Insert",
-		a.insert,
-		content,
-	}
-}
-
-func (a *File) Upload(dest string) {
-
-	a.ops <- Op{
-		"Upload",
-		a.upload,
-		dest,
-	}
-}
-
-func (a *File) insert(content string) (err error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 
 	_, err = a.writer.WriteString(fmt.Sprint(content + "\n"))
 
 	return
 }
 
-func (a *File) upload(dest string /* placeholder */) (err error) {
+func (a *File) Upload(dest string /* placeholder */) (err error) {
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
 
 	err = a.writer.Flush()
 
@@ -97,15 +60,19 @@ func (a *File) upload(dest string /* placeholder */) (err error) {
 
 	err = copyFile(a.Caminho, dest)
 
-	//	err = a.file.Truncate(0)
-	//	_, err = a.file.Seek(0, 0)
+	if err != nil {
 
-	return
-}
+		return
+	}
 
-func (a *File) Wait() (report <-chan error) {
+	err = a.file.Truncate(0)
 
-	report = a.reportChannel
+	if err != nil {
+
+		return
+	}
+
+	_, err = a.file.Seek(0, 0)
 
 	return
 }

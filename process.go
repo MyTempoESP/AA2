@@ -24,8 +24,6 @@ func (a *Ay) Process() {
 	tagSet := intSet.New()
 
 	tagsFile, err := file.NewFile("tags")
-	go tagsFile.Observe()
-	<-time.After(100 * time.Millisecond)
 
 	if err != nil {
 
@@ -52,7 +50,6 @@ func (a *Ay) Process() {
 
 			//001000000000000036513:34:21.097
 			tagsFile.Insert(t.FormatoRefinado)
-			<-tagsFile.Wait()
 		}
 	}()
 
@@ -180,28 +177,19 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_USB:
 
-					err = CopyToUSB(&device, tagsFile)
+					display.ScreenProgress()
+
+					err = CopyToUSB(&device, &tagsFile)
+
+					<-time.After(1 * time.Second) // min 1 sec
 
 					if err != nil {
 
-						log.Println(err)
+						display.ScreenErr()
+
+						<-time.After(5 * time.Second)
 
 						continue
-					}
-
-					display.ScreenProgress()
-					<-time.After(1 * time.Second)
-
-					select {
-					case err = <-tagsFile.Wait():
-
-						if err != nil {
-
-							display.ScreenErr()
-
-							<-time.After(5 * time.Second)
-						}
-					case <-time.After(2 * time.Second):
 					}
 				}
 			}

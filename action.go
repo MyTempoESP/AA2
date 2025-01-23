@@ -8,7 +8,7 @@ import (
 	usb "aa2/usb"
 )
 
-func CopyToUSB(device *usb.Device, file file.File) (err error) {
+func CopyToUSB(device *usb.Device, file *file.File) (err error) {
 
 	if !device.IsMounted {
 
@@ -20,7 +20,9 @@ func CopyToUSB(device *usb.Device, file file.File) (err error) {
 		}
 	}
 
-	file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%d", time.Now().UnixMilli()))
+	now := time.Now()
+
+	file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
 
 	return
 }
