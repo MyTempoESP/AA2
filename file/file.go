@@ -49,6 +49,7 @@ func (a *File) Observe() {
 	a.reportChannel = make(chan error)
 
 	for op := range a.ops {
+
 		err := op.Func(op.Arg)
 
 		if err != nil {
@@ -56,9 +57,7 @@ func (a *File) Observe() {
 			log.Println(err)
 		}
 
-		if op.Nome != "Insert" {
-			a.reportChannel <- err
-		}
+		a.reportChannel <- err
 	}
 }
 

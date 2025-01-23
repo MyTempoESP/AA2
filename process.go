@@ -50,9 +50,9 @@ func (a *Ay) Process() {
 			tagSet.Insert(t.Epc)
 
 			//001000000000000036513:34:21.097
-
 			log.Println("Filemaker")
 			tagsFile.Insert(t.FormatoRefinado)
+			<-tagsFile.Wait()
 			log.Println("Filemaker_too_long")
 		}
 	}()
