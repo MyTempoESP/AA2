@@ -177,7 +177,7 @@ func (a *Ay) Process() {
 
 				switch action {
 				case lcdlogger.ACTION_USB:
-					CopyToUSB(device, tagsFile)
+					CopyToUSB(&device, tagsFile)
 				}
 			}
 

@@ -10,16 +10,25 @@ type Device struct {
 	IsMounted bool
 }
 
-func (d *Device) Mount(mountPoint string) error {
+func (d *Device) Mount(mountPoint string) (err error) {
 
 	if d.IsMounted {
 
-		return errors.New("Device already mounted!")
+		err = errors.New("Device already mounted!")
+
+		return
+	}
+
+	err = Mount(d.Name, mountPoint)
+
+	if err != nil {
+
+		return
 	}
 
 	d.IsMounted = true
 
-	return Mount(d.Name, mountPoint)
+	return
 }
 
 func (d *Device) Check() (bool, error) {
