@@ -17,6 +17,8 @@ func (d *Device) Mount(mountPoint string) error {
 		return errors.New("Device already mounted!")
 	}
 
+	d.IsMounted = true
+
 	return Mount(d.Name, mountPoint)
 }
 

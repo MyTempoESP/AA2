@@ -6,13 +6,7 @@ import (
 	"os"
 )
 
-func copyFile(src, dst string) error {
-	// Open the source file
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("failed to open source file: %v", err)
-	}
-	defer sourceFile.Close()
+func copyFile(src *os.File, dst string) error {
 
 	// Create the destination file
 	destinationFile, err := os.Create(dst)
@@ -22,7 +16,7 @@ func copyFile(src, dst string) error {
 	defer destinationFile.Close()
 
 	// Copy the contents from source to destination
-	_, err = io.Copy(destinationFile, sourceFile)
+	_, err = io.Copy(destinationFile, src)
 	if err != nil {
 		return fmt.Errorf("failed to copy file: %v", err)
 	}
