@@ -192,6 +192,8 @@ func (a *Ay) Process() {
 					select {
 					case err = <-tagsFile.Wait():
 
+						<-time.After(2 * time.Second)
+
 						if err != nil {
 
 							display.ScreenErr()
