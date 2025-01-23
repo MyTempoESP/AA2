@@ -19,6 +19,8 @@ type File struct {
 
 	ops chan Op
 
+	reportChannel chan error
+
 	Caminho string
 }
 
@@ -44,6 +46,7 @@ func NewFile(nome string) (a File, err error) {
 func (a *File) Observe() {
 
 	a.ops = make(chan Op)
+	a.reportChannel = make(chan error)
 
 	for op := range a.ops {
 		err := op.Func(op.Arg)
@@ -52,6 +55,8 @@ func (a *File) Observe() {
 
 			log.Println(err)
 		}
+
+		a.reportChannel <- err
 	}
 }
 
@@ -98,6 +103,13 @@ func (a *File) upload(dest string /* placeholder */) (err error) {
 
 	err = a.file.Truncate(0)
 	_, err = a.file.Seek(0, 0)
+
+	return
+}
+
+func (a *File) Wait() (err error) {
+
+	err = <-a.reportChannel
 
 	return
 }

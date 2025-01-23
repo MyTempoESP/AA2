@@ -4,7 +4,7 @@
 //#include <HardwareSerial.h>
 #include <nanoFORTH.h>
 
-#define LABEL_COUNT 13
+#define LABEL_COUNT 16
 
 const char* labels[] = {
   "PORTAL   My",
@@ -19,10 +19,13 @@ const char* labels[] = {
   "PROVA: ",
   "PING: ",
   "HORA: ",
-  "USB: "
+  "USB: ",
+  "AGUARDE...",
+  "ERRO, TENTAR",
+  "  NOVAMENTE"
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11
 };
 
 #define VALUE_COUNT 4

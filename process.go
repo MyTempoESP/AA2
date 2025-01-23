@@ -178,6 +178,17 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_USB:
 					CopyToUSB(&device, tagsFile)
+
+					display.ScreenProgress()
+
+					err = tagsFile.Wait()
+
+					if err == nil {
+
+						display.ScreenErr()
+
+						<-time.After(2 * time.Second)
+					}
 				}
 			}
 
