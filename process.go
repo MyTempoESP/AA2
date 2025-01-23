@@ -191,11 +191,13 @@ func (a *Ay) Process() {
 
 					err = <-tagsFile.Wait()
 
-					if err == nil {
+					<-time.After(2 * time.Second)
+
+					if err != nil {
 
 						display.ScreenErr()
 
-						<-time.After(2 * time.Second)
+						<-time.After(5 * time.Second)
 					}
 				}
 			}
