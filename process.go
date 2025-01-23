@@ -24,6 +24,7 @@ func (a *Ay) Process() {
 	tagSet := intSet.New()
 
 	tagsFile, err := file.NewFile("tags")
+	go tagsFile.Observe()
 
 	if err != nil {
 
