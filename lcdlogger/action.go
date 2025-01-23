@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	ACTION_USB = iota
+	ACTION_USB = SCREEN_USB
 )
 
 type Action int
