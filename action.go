@@ -20,7 +20,7 @@ func CopyToUSB(device usb.Device, file file.File) (err error) {
 		}
 	}
 
-	file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%v", time.Now()))
+	file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%v", time.Now().Format("2017_09_07_17_06_06_Wednesday")))
 
 	return
 }
