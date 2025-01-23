@@ -22,7 +22,7 @@ func CopyToUSB(device *usb.Device, file *file.File) (err error) {
 
 	now := time.Now()
 
-	file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
+	err = file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
 
 	return
 }
