@@ -188,11 +188,10 @@ func (a *Ay) Process() {
 					}
 
 					display.ScreenProgress()
+					<-time.After(1 * time.Second)
 
 					select {
 					case err = <-tagsFile.Wait():
-
-						<-time.After(2 * time.Second)
 
 						if err != nil {
 

@@ -56,7 +56,9 @@ func (a *File) Observe() {
 			log.Println(err)
 		}
 
-		a.reportChannel <- err
+		if op.Nome != "Insert" {
+			a.reportChannel <- err
+		}
 	}
 }
 
