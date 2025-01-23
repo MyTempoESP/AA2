@@ -89,7 +89,12 @@ func (a *File) upload(dest string /* placeholder */) (err error) {
 		return
 	}
 
-	copyFile(a.file, dest)
+	err = copyFile(a.file, dest)
+
+	if err != nil {
+
+		return
+	}
 
 	err = a.file.Truncate(0)
 	_, err = a.file.Seek(0, 0)
