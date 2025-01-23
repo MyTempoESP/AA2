@@ -89,7 +89,7 @@ func (a *File) upload(dest string /* placeholder */) (err error) {
 		return
 	}
 
-	err = copyFile(a.file, dest)
+	err = copyFile(a.Caminho, dest)
 
 	if err != nil {
 

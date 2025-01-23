@@ -1,25 +1,15 @@
 package file
 
 import (
-	"fmt"
-	"io"
-	"os"
+	"os/exec"
 )
 
-func copyFile(src *os.File, dst string) error {
+func copyFile(src, dst string) (err error) {
 
-	// Create the destination file
-	destinationFile, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file: %v", err)
-	}
-	defer destinationFile.Close()
+	args := []string{src, dst}
+	cmd := exec.Command("cp", args...)
 
-	// Copy the contents from source to destination
-	_, err = io.Copy(destinationFile, src)
-	if err != nil {
-		return fmt.Errorf("failed to copy file: %v", err)
-	}
+	err = cmd.Run()
 
-	return nil
+	return
 }
