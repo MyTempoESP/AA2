@@ -25,6 +25,7 @@ func (a *Ay) Process() {
 
 	tagsFile, err := file.NewFile("tags")
 	go tagsFile.Observe()
+	<-time.After(100 * time.Millisecond)
 
 	if err != nil {
 
