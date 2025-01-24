@@ -46,7 +46,7 @@ func TestUSB(t *testing.T) {
 		},
 	}
 
-	check, err := usb.CheckUSBStorageDevice(mockFS)
+	_, check, err := usb.CheckUSBStorageDevice(mockFS)
 
 	if err != nil {
 

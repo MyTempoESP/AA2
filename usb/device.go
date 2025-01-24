@@ -31,7 +31,9 @@ func (d *Device) Mount(mountPoint string) (err error) {
 	return
 }
 
-func (d *Device) Check() (bool, error) {
+func (d *Device) Check() (check bool, err error) {
 
-	return CheckUSBStorageDevice(d.FS)
+	d.Name, check, err = CheckUSBStorageDevice(d.FS)
+
+	return
 }

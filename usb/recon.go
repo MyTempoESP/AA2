@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func CheckUSBStorageDevice(fs FileSystem) (check bool, err error) {
+func CheckUSBStorageDevice(fs FileSystem) (device string, check bool, err error) {
 
 	const sysBlockPath = "/sys/block/"
 
@@ -31,7 +31,7 @@ func CheckUSBStorageDevice(fs FileSystem) (check bool, err error) {
 		// USB devices will have "usb" in their symlink path
 		if err == nil && strings.Contains(realPath, "/usb") {
 
-			//device = "/dev/" + dev.Name()
+			device = "/dev/" + dev.Name()
 			check = true
 
 			return
