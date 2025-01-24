@@ -174,23 +174,27 @@ func (a *Ay) Process() {
 
 			if action, hasAction := display.Action(); hasAction {
 
+				display.ScreenProgress()
+
 				switch action {
+				case lcdlogger.ACTION_WIFI: /* empty */
+				case lcdlogger.ACTION_TIME: /* empty */
+				case lcdlogger.ACTION_TAGS:
+					tags.Store(0)
+					tagSet.Clear()
 				case lcdlogger.ACTION_USB:
-
-					display.ScreenProgress()
-
 					err = CopyToUSB(&device, &tagsFile)
+				}
 
-					<-time.After(1 * time.Second) // min 1 sec
+				<-time.After(1 * time.Second) // min 1 sec
 
-					if err != nil {
+				if err != nil {
 
-						display.ScreenErr()
+					display.ScreenErr()
 
-						<-time.After(5 * time.Second)
+					<-time.After(5 * time.Second)
 
-						continue
-					}
+					continue
 				}
 			}
 
