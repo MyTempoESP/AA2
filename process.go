@@ -176,6 +176,8 @@ func (a *Ay) Process() {
 
 				display.ScreenProgress()
 
+				err = nil
+
 				switch action {
 				case lcdlogger.ACTION_WIFI: /* empty */
 				case lcdlogger.ACTION_TIME: /* empty */
@@ -184,6 +186,32 @@ func (a *Ay) Process() {
 					tagSet.Clear()
 				case lcdlogger.ACTION_USB:
 					err = CopyToUSB(&device, &tagsFile)
+				}
+
+				<-time.After(1 * time.Second) // min 1 sec
+
+				if err != nil {
+
+					display.ScreenErr()
+
+					<-time.After(5 * time.Second)
+
+					continue
+				}
+			}
+
+			display.HandleAltActionButton()
+			display.ProcessAltAction()
+
+			if action, hasAction := display.AltAction(); hasAction {
+
+				display.ScreenProgress()
+
+				err = nil
+
+				switch action {
+				case lcdlogger.ALT_ACTION_RESTART:
+					err = RestartComputer()
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec

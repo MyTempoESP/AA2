@@ -15,6 +15,10 @@ type SerialDisplay struct {
 	actionButtonLHTime time.Time // Last Held Timestamp
 	actionButtonHeld   bool
 	action             Action
+
+	altButtonLHTime time.Time
+	altButtonHeld   bool
+	altAction       Action
 }
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
