@@ -16,6 +16,6 @@ func Mount(device, mountPoint string) (err error) {
 func Umount() {
 
 	cmd := exec.Command("umount", "/mnt")
-	err = cmd.Run()
+	cmd.Run()
 }
 
