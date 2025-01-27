@@ -6,10 +6,16 @@ import (
 
 func Mount(device, mountPoint string) (err error) {
 
-	args := []string{device, mountPoint}
+	args := []string{device + "1", mountPoint}
 	cmd := exec.Command("mount", args...)
-
 	err = cmd.Run()
 
 	return
 }
+
+func Umount() {
+
+	cmd := exec.Command("umount", "/mnt")
+	err = cmd.Run()
+}
+

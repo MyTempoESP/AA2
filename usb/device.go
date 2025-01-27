@@ -2,6 +2,7 @@ package usb
 
 import (
 	"errors"
+	"log"
 )
 
 type Device struct {
@@ -11,6 +12,8 @@ type Device struct {
 }
 
 func (d *Device) Mount(mountPoint string) (err error) {
+
+	log.Println("@ USB - MOUNTING DEVICE")
 
 	if d.IsMounted {
 
@@ -26,6 +29,7 @@ func (d *Device) Mount(mountPoint string) (err error) {
 		return
 	}
 
+	log.Println("@ USB - DEVICE MOUNTED")
 	d.IsMounted = true
 
 	return
@@ -34,6 +38,16 @@ func (d *Device) Mount(mountPoint string) (err error) {
 func (d *Device) Check() (check bool, err error) {
 
 	d.Name, check, err = CheckUSBStorageDevice(d.FS)
+
+	if !check && d.IsMounted {
+
+		log.Println("@ USB - DEVICE REMOVED")
+
+		d.IsMounted = false
+		Umount()
+		
+		return
+	}
 
 	return
 }
