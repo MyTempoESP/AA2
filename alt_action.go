@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	mysql "github.com/mytempoesp/mysql-easy"
 )
 
@@ -14,6 +16,8 @@ func RestartComputer() (err error) {
 	}
 
 	_, err = db.Exec("UPDATE equipamento SET action = 1")
+
+	log.Println(err)
 
 	defer db.Close()
 

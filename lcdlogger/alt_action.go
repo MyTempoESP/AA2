@@ -10,12 +10,12 @@ const (
 
 func (display *SerialDisplay) AltAction() (action Action, hasAction bool) {
 
-	action = display.action
+	action = display.altAction
 
 	if action >= 0 {
 
 		hasAction = true
-		display.action = -1
+		display.altAction = -1
 	}
 
 	return
@@ -23,7 +23,7 @@ func (display *SerialDisplay) AltAction() (action Action, hasAction bool) {
 
 func (display *SerialDisplay) hasAltAction() bool {
 
-	return display.action >= 0
+	return display.altAction >= 0
 }
 
 func (display *SerialDisplay) HandleAltActionButton() {
