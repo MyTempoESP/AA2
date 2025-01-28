@@ -37,7 +37,9 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 	f.Query("1 .")
 
 	display.Forth = &f
+
 	display.action = -1
+	display.altAction = -1
 
 	return
 }
