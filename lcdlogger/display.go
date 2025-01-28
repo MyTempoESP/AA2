@@ -67,6 +67,8 @@ func (display *SerialDisplay) SwitchScreens() {
 
 			display.action = Action(display.Screen)
 
+			display.actionButtonLHTime = time.Now().Add(time.Hour * 24)
+
 			return
 		}
 

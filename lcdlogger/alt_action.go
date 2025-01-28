@@ -74,6 +74,8 @@ func (display *SerialDisplay) ProcessAltAction() {
 
 			display.altAction = Action(ALT_ACTION_RESTART)
 
+			display.altButtonLHTime = time.Now().Add(time.Hour * 24)
+
 			return
 		}
 	}
