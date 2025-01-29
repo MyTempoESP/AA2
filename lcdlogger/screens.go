@@ -2,6 +2,7 @@ package lcdlogger
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/MyTempoesp/flick"
@@ -23,9 +24,14 @@ const (
 
 type IPOctets [4]int
 
+func (display *SerialDisplay) DrawScreen(code string) {
+
+	display.Forth.Send(code + " 0 API") // draw opcode
+}
+
 func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas ForthNumber) {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl"+
@@ -46,7 +52,9 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 
 func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leitorOk int) {
 
-	display.Forth.Send(
+	log.Println(ip)
+
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl %d %d %d %d ip"+
@@ -54,7 +62,7 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leito
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			flick.IP, ip[3], ip[2], ip[1], ip[0],
+			flick.IP, ip[0], ip[1], ip[2], ip[3],
 			flick.LEITOR, leitorOk,
 			flick.COMUNICANDO, commVerif,
 		),
@@ -63,7 +71,7 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leito
 
 func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif int, wifiPing int64) {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d lbl %d val"+
@@ -80,7 +88,7 @@ func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif 
 
 func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 ForthNumber) {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" %d %d"+ // A4 Val+Mag
@@ -103,26 +111,26 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 	now := time.Now()
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 
 				// display Time label
 				" tim"+
 
-				// Seconds, Minutes
-				" %d %d"+
-
 				// Hours, -3 cuz we at GMT-3
-				" %d 3 - hms"+
+				" %d 3 -"+
+
+				// Minutes, Seconds
+				" %d %d hms"+
 
 				// skip line
-				" <cr>"+
+				" fwd"+
 
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
-			now.Second(), now.Minute(), now.Hour(),
+			now.Hour(), now.Minute(), now.Second(),
 			flick.COMUNICANDO, commVerif,
 		),
 	)
@@ -130,11 +138,11 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				" usb %d val"+
-				" <cr>"+
+				" fwd"+
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
@@ -146,19 +154,19 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 
 func (display *SerialDisplay) ScreenProgress() {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
-			"<cr> <cr>" +
-				" 13 lbl fwd <cr>",
+			"fwd fwd" +
+				" 13 lbl fwd fwd",
 		),
 	)
 }
 
 func (display *SerialDisplay) ScreenErr() {
 
-	display.Forth.Send(
+	display.DrawScreen(
 		fmt.Sprintf(
-			"<cr> <cr>" +
+			"fwd fwd" +
 				" 14 lbl fwd 15 lbl fwd",
 		),
 	)

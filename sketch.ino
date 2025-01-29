@@ -85,22 +85,23 @@ const char code[] PROGMEM =          ///< define preload Forth code here
   ";\n"
 ;
 
-#define VIRT_SCR_COLS 16
+#define VIRT_SCR_COLS 20
 #define VIRT_SCR_ROWS 4
 
 uint8_t g_x, g_y;
 char g_virt_scr[VIRT_SCR_ROWS][VIRT_SCR_COLS];
 
 #define virt_scr_sprintf(fmt, ...) \
-  snprintf(g_virt_scr[g_y] + g_x, ((VIRT_SCR_COLS - 1) - g_x), fmt, __VA_ARGS__);
+  snprintf(g_virt_scr[g_y] + g_x, ((VIRT_SCR_COLS + 1) - g_x), fmt, __VA_ARGS__);
 
-LiquidCrystal_I2C lcd(0x27, 16, 4);
+LiquidCrystal_I2C lcd(0x27, VIRT_SCR_COLS, VIRT_SCR_ROWS);
 
 void
 setup()
 {
   lcd.init();      // Initialize the LCD
   lcd.backlight(); // Turn on the backlight
+  
   memset(g_virt_scr, '\0', sizeof(g_virt_scr));
 
   Serial.begin(115200);
@@ -173,7 +174,7 @@ forth_ip()
   if ((f = n4_pop()) >= 256) {
     g_x += virt_scr_sprintf("%02d:%02d:%02d", n4_pop(), n4_pop(), n4_pop());
   } else {
-    g_x += virt_scr_sprintf("%d.%d.%d.%d", f, n4_pop(), n4_pop(), n4_pop());
+    g_x += virt_scr_sprintf("%d.%d.%d.%d", n4_pop(), n4_pop(), n4_pop(), f);
   }
 }
 
@@ -202,6 +203,7 @@ forth_line_feed()
   for (; g_x < VIRT_SCR_COLS - 1; g_x++)
     g_virt_scr[g_y][g_x] = ' ';
 
+  g_x++;
   g_virt_scr[g_y][g_x] = '\0';
 
   g_x = 0;
@@ -219,7 +221,7 @@ draw()
 
     lcd.setCursor(0, i);
 
-    for (char* c = g_virt_scr[i]; *c != '\0'; c++)
+    for (char* c = g_virt_scr[i], i = 0; *c != '\0' && i < VIRT_SCR_COLS; c++, i++)
       lcd.write(*c);
   }
 }
