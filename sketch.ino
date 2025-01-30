@@ -8,7 +8,7 @@
 #define LABEL_COUNT 16
 
 const char* labels[] = {
-  "PORTAL   My",
+  "PORTAL  My",
   "ATLETAS  ",
   "REGIST.  ",
   "COMUNICANDO ",
@@ -26,7 +26,7 @@ const char* labels[] = {
   "  NOVAMENTE"
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11
+  10,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11
 };
 
 #define VALUE_COUNT 9
@@ -43,46 +43,173 @@ const char* values[] = {
   ": "
 };
 
-const char code[] PROGMEM =          ///< define preload Forth code here
+const char code[] PROGMEM =
+#define NL "\n"
+/*
+  -------------------------------------
+
+  Intro:
+
+    (EXP): Exported variable, means it
+    will be used outside of this code,
+    probably in the Go part of the
+    source, which mainly deals with
+    ACtions.
+
+    Such variables follow the go
+    convention for exported symbols,
+    starting with a capital letter.
+  
+  ----------CAPITALIZATION-------------
+
+    Xxx: (EXP) Variables. They can
+    (and will), still have prefixes
+    though it will take some
+    imagination.
+
+    XXX: Forth primitives or consts
+    (VALs).
+
+  -------------------------------------
+
+    xXX: Variables with the first
+    letter left uncapitalized, and
+    the rest capitalized, are prefix
+    variables, akin to namespaces or
+    objects (read them like: x.XX).
+
+    They are used to specify that a
+    variable refers to some entity,
+    for example, the MAIN button, in
+    'mAC'.
+  
+  -------------------------------------
+
+    xXx: These are functions, they are
+    capitalized this way to help with
+    identification, since we have no
+    syntax highlighting and are limited
+    to 3 chars.
+
+    This also enables us to name
+    functions after certain variables,
+    although it is not recommended.
+
+  -------------------------------------
+*/
+
+// Const.fth
+  "501 VAL VER"     NL // version
 
 // Button.fth
-  "VAR bac\n"
-  "VAR bst\n"
-  "VAR ba2\n"
-  "VAR bs2\n"
-  ": btn 6 IN 0 = ;\n"
-  ": bt2 7 IN 0 = ;\n"
-  ": bfy DUP ROT SWP NOT AND ;\n" // ( btn bst -- bac bst_new )
-  ": pr1 bac @ NOT IF bst @ btn bfy bac ! bst ! THN ;\n"
-  ": pr2 ba2 @ NOT IF bs2 @ bt2 bfy ba2 ! bs2 ! THN ;\n"
-  ": chb pr1 pr2 ;\n"
-  "10 0 TMI chb 1 TME\n"
+
+  // Generic button interface definition
+  //  "IFC b HAS AC ST RL Pr IN\n"
+  //  "b m, b a\n"
+
+  // Class consts ( they use property capitalization )
+  "6 VAL mIN"       NL
+  "7 VAL aIN"       NL
+
+  // Properties                 CLASS  PROP     DESC
+  "VAR mRL"         NL // m ->  MAIN , m.RL, MAIN RELEASE
+  "VAR Mac"         NL // (EXP) MAIN , M.ac, MAIN ACTION
+  "VAR mST"         NL //       MAIN , m.ST, MAIN STATE
+
+  "VAR aAC"         NL // a ->  ALT  , a.AC, ALT  ACTION
+  "VAR aST"         NL //       ALT  , a.ST, ALT  STATE
+
+  // Methods                    CLASS  METHOD   DESC
+  ": mPr"              // M.PR(--)
+    " mIN IN 0 = ;" NL //       MAIN , m.Pr, MAIN PRESSED
+  ": aPr "             // A.PR(--)
+    " aIN IN 0 = ;" NL //       ALT  , a.Pr, ALT  PRESSED
+
+  ": cAl"              // CAL ( b.Pr b.ST -- b.RL b.ST' )
+    " DUP ROT SWP"     // Desc: "CALculates" the truth
+    " NOT AND ;"    NL // value of b.RL, i.e. checks if
+  //                      the button has been PR + RL
+  //                      (RELEASED), from the current
+  //                      state vs the previous one, i.e.
+  //                      b.Pr vs b.ST.
+  //                        - Also returns the new value
+  //                      for b.ST, which is the return
+  //                      from b.PR.
+
+  ": sWi"              // SWI ( m.RL -- )
+    " IF"              // Desc: Switches screens if
+      " Scr @ 1 +"     // m.RL is set.
+      " 7 MOD THN ;"NL
+
+  ": mUp"
+    " mST @ mPR"
+    " cAl DUP"
+    " sWi bAc"
+    " Mac !"
+    " mST ! ;"      NL
+
+  ": aUp"
+    " aST @ aPR"
+    " cAl DUP"
+    " bAc"
+    " Aac !"
+    " aST ! ;"      NL
+
+  ": bUp"              // b::Up(--)
+    " Mac @ NOT IF mUp THN"
+    " Aac @ NOT IF aUp THN"
+  " ;"              NL
 
 // Screen.fth
-  ": lbl  5   API ;\n"
-  ": fwd  2   API ;\n"
-  ": lit  API fwd ;\n"
-  ": fnm  1   lit ;\n"
-  ": fni  1   API ;\n" // Multi-Column
-  ": num  4   lit ;\n"
-  ": nui  4   API ;\n" // Multi-Column
-  ": val  6   lit ;\n"
-  ": ip   7   lit ;\n"
-  ": ms   3   lit ;\n"
-  ": hms  256 ip  ;\n"
-  ": usb  12  lbl ;\n"
-  ": tim  11  lbl ;\n"
+  ": lBl  5   API ;"NL
+  ": fWd  2   API ;"NL
+  ": fNm  1   API ;"NL
+  ": nUm  4   API ;"NL
+  ": vAl  6   API ;"NL
+  ": iP   7   API ;"NL
+  ": mS   3   API ;"NL
+  ": hMs  256 iP  ;"NL
+  //": uSb  12  lBl ;"NL
+  //": tIm  11  lBl ;"NL
   
   // Text Decorations
-  ": a    7 6 API ;\n" // Multi-Column
-  ": spc  6 6 API ;\n" // Multi-Column
-  ": sep  8 6 API ;\n" // Multi-Column
+  ": a    7 6 API ;"NL
+  ": sPc  6 6 API ;"NL
+  ": sEp  8 6 API ;"NL
 
   // Antenna Data
-  ": atn " // ( N Mag N Mag N Mag N Mag -- )
-    "a 1 nui sep fni spc a 2 nui sep fnm "
-    "a 3 nui sep fni spc a 4 nui sep fnm "
-  ";\n"
+  ": atn" // ( N Mag N Mag N Mag N Mag -- )
+    " a 1 nUm sEp fNm sPc a 2 nUm sEp fNm fWd"
+    " a 3 nUm sEp fNm sPc a 4 nUm sEp fNm fWd"
+  " ;"               NL
+
+  // Display memory
+  ": Dis"
+
+    // Data: 8 bytes
+    " NOP NOP"
+    " NOP NOP"
+    " NOP NOP"
+    " NOP NOP"       NL
+
+    // Heading: 9 bytes
+    " 0 lBl VER nUm fWd"
+
+    // +0x11 (dec 17)
+    " NOP NOP NOP NOP NOP fWd"
+    " NOP NOP NOP NOP NOP fWd"
+
+    // Heading: 8 bytes
+    " 3 lBl 0 vAl fWd"
+
+    " 0 API"
+  " ;"               NL
+
+// Timers.fth
+  "500 DLY"          NL // Wait until everything is loaded
+  "10 0 TMI bUp"     NL // Init button checking
+  "50 1 TMI Dis"     NL // Init display
+  "1 TME"            NL // Init timers
 ;
 
 #define VIRT_SCR_COLS 20
