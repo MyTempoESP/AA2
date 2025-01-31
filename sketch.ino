@@ -98,25 +98,36 @@ const char code[] PROGMEM =
   -------------------------------------
 */
 
-// Const.fth
+// Globals.fth
+
   "501 VAL VER"     NL // version
-
-// Button.fth
-
+  
   // Generic button interface definition
-  //  "IFC b HAS AC ST RL Pr IN\n"
-  //  "b m, b a\n"
+  
+  //  "IFC b"
+  //   " HAS AC "
+  //         "ST "
+  //         "RL "
+  //         "Pr "
+  //         "IN ;" NL
+
+  //  "b m"         NL
+  //  "b a"         NL
 
   // Class consts ( they use property capitalization )
   "6 VAL mIN"       NL
   "7 VAL aIN"       NL
+
+  "VAR Scr"         NL // Screen Number
+
+// Button.fth
 
   // Properties                 CLASS  PROP     DESC
   "VAR mRL"         NL // m ->  MAIN , m.RL, MAIN RELEASE
   "VAR Mac"         NL // (EXP) MAIN , M.ac, MAIN ACTION
   "VAR mST"         NL //       MAIN , m.ST, MAIN STATE
 
-  "VAR aAC"         NL // a ->  ALT  , a.AC, ALT  ACTION
+  "VAR Aac"         NL // a ->  ALT  , a.AC, ALT  ACTION
   "VAR aST"         NL //       ALT  , a.ST, ALT  STATE
 
   // Methods                    CLASS  METHOD   DESC
@@ -139,21 +150,60 @@ const char code[] PROGMEM =
   ": sWi"              // SWI ( m.RL -- )
     " IF"              // Desc: Switches screens if
       " Scr @ 1 +"     // m.RL is set.
-      " 7 MOD THN ;"NL
+      " 7 MOD"
+      " Scr ! THN ;"NL
+
+  ": bAc"              // B.AC( b.LH  b.LH-      ...
+  //                      ...   b.RL  b.ST' b.ST ...
+  //                      ...       --           ...
+  //                      ...    setclock?  b.AC )
+  //                      Desc: checks if the LastHeld
+  //                      timestamp is > 2000, signaling
+  //                      an action. Also checks if
+  //                      you should reset b.LH.
+    " SWP ROT IF"        
+      " DNG CLK D+"    
+      " DRP"
+      " 2000 >"        // is TOS > 2000?, result is b.AC
+    " ELS DRP DRP 0"
+    " THN SWP ROT"
+    " NOT AND ;"    NL // b.ST' ^ ~b.ST = setclock?
+
+  ": mec"
+    " "
+  " ;"
+
+  ": mAc"
+    " 0 0"             // ( m.LH  m.LH-      )
+    " NOP NOP"
+    " bAc"             // ( m.LH' m.LH'- ... )
+    " IF"
+      " $ADB7 ' mAc !" // CLK NOP
+      " $B7B7 ' mAc 2 + !"
+    " THN ;"        NL
+
+  ": aAc"
+    " 0 0"             // ( a.LH  a.LH-      )
+    " bAc"             // ( a.LH' a.LH'- ... )
+    " IF"
+      " CLK ' aAc ! ' aAc 2 + !"
+    " THN ;"        NL
 
   ": mUp"
-    " mST @ mPR"
-    " cAl DUP"
-    " sWi bAc"
-    " Mac !"
-    " mST ! ;"      NL
+    " mST @ DUP mPr"
+    " cAl SWP"
+    " DUP mST !"    NL
+    " SWP"
+    " DUP sWi mAc"
+    " Mac ! ;"      NL
 
   ": aUp"
-    " aST @ aPR"
-    " cAl DUP"
-    " bAc"
-    " Aac !"
-    " aST ! ;"      NL
+    " aST @ DUP aPr"
+    " cAl SWP"
+    " DUP aST !"    NL
+    " SWP"
+    " DUP sWi aAc"
+    " Aac ! ;"      NL
 
   ": bUp"              // b::Up(--)
     " Mac @ NOT IF mUp THN"
@@ -161,6 +211,7 @@ const char code[] PROGMEM =
   " ;"              NL
 
 // Screen.fth
+
   ": lBl  5   API ;"NL
   ": fWd  2   API ;"NL
   ": fNm  1   API ;"NL
@@ -168,20 +219,24 @@ const char code[] PROGMEM =
   ": vAl  6   API ;"NL
   ": iP   7   API ;"NL
   ": mS   3   API ;"NL
-  ": hMs  256 iP  ;"NL
+  //": hMs  256 iP  ;"NL
   //": uSb  12  lBl ;"NL
   //": tIm  11  lBl ;"NL
   
   // Text Decorations
-  ": a    7 6 API ;"NL
-  ": sPc  6 6 API ;"NL
-  ": sEp  8 6 API ;"NL
+#define A     " 7 6 API "
+#define SPACE " 6 6 API "
+#define COLON " 8 6 API "
 
+  // escovando bit
   // Antenna Data
   ": atn" // ( N Mag N Mag N Mag N Mag -- )
-    " a 1 nUm sEp fNm sPc a 2 nUm sEp fNm fWd"
-    " a 3 nUm sEp fNm sPc a 4 nUm sEp fNm fWd"
-  " ;"               NL
+    A "1 nUm" COLON "fNm" SPACE
+    A "2 nUm" COLON "fNm fWd"
+  /**/              NL
+    A "3 nUm" COLON "fNm" SPACE
+    A "4 nUm" COLON "fNm fWd"
+  " ;"              NL
 
   // Display memory
   ": Dis"
@@ -190,7 +245,7 @@ const char code[] PROGMEM =
     " NOP NOP"
     " NOP NOP"
     " NOP NOP"
-    " NOP NOP"       NL
+    " NOP NOP"      NL
 
     // Heading: 9 bytes
     " 0 lBl VER nUm fWd"
@@ -203,13 +258,13 @@ const char code[] PROGMEM =
     " 3 lBl 0 vAl fWd"
 
     " 0 API"
-  " ;"               NL
+  " ;"              NL
 
 // Timers.fth
-  "500 DLY"          NL // Wait until everything is loaded
-  "10 0 TMI bUp"     NL // Init button checking
-  "50 1 TMI Dis"     NL // Init display
-  "1 TME"            NL // Init timers
+  "500 DLY"         NL // Wait until everything is loaded
+  //"10 0 TMI bUp"    NL // Init button checking
+  "50 1 TMI Dis"    NL // Init display
+  "1 TME"           NL // Init timers
 ;
 
 #define VIRT_SCR_COLS 20
