@@ -94,9 +94,11 @@ func (a *Ay) Process() {
 		return
 	}
 
+	os.Setenv("TZ", "Brazil/East")
+
 	go func() {
 
-		const NUM_EQUIP = 701
+		const NUM_EQUIP = 501
 
 		for {
 
@@ -212,6 +214,11 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ALT_ACTION_RESTART:
 					err = RestartComputer()
+					
+					if err == nil {
+
+						select{}
+					}
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec

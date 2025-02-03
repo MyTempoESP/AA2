@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"log"
 )
 
 type File struct {
@@ -58,10 +59,13 @@ func (a *File) Upload(dest string /* placeholder */) (err error) {
 		return
 	}
 
+	log.Println("copying")
+
 	err = copyFile(a.Caminho, dest)
 
 	if err != nil {
 
+		log.Println("COPY | Error")
 		return
 	}
 
