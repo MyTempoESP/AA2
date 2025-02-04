@@ -94,9 +94,11 @@ func (a *Ay) Process() {
 		return
 	}
 
+	os.Setenv("TZ", "Brazil/East")
+
 	go func() {
 
-		const NUM_EQUIP = 701
+		const NUM_EQUIP = 501
 
 		for {
 

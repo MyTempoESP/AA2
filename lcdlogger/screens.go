@@ -109,7 +109,8 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 
 func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
-	now := time.Now()
+	now := time.Now().Local()
+	//log.Println("now", now)
 
 	display.DrawScreen(
 		fmt.Sprintf(
@@ -119,7 +120,7 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 				" tim"+
 
 				// Hours, -3 cuz we at GMT-3
-				" %d 3 -"+
+				" %d "+
 
 				// Minutes, Seconds
 				" %d %d hms"+
