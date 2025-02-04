@@ -88,13 +88,12 @@ func (a *Ay) Process() {
 
 	display, displayErr := lcdlogger.NewSerialDisplay()
 
-	/* > Monitoring can be skipped if NewSerialDisplay() errors out, disabling the routine in Line 221 */
 	if displayErr != nil {
 
 		return
 	}
 
-	os.Setenv("TZ", "Brazil/East")
+	//os.Setenv("TZ", "Brazil/East")
 
 	go func() {
 
@@ -109,7 +108,7 @@ func (a *Ay) Process() {
 				display.ScreenTags(
 					NUM_EQUIP,
 					commVerif,
-					/* Tags */ lcdlogger.ToForthNumber(tags.Load()),
+					/* Tags    */ lcdlogger.ToForthNumber(tags.Load()),
 					/* Atletas */ lcdlogger.ToForthNumber(tagSet.Count()),
 				)
 			case lcdlogger.SCREEN_ADDR:
@@ -124,7 +123,7 @@ func (a *Ay) Process() {
 				display.ScreenAddr(
 					NUM_EQUIP,
 					commVerif,
-					/* IP */ readerOctets,
+					/* IP         */ readerOctets,
 					/* leitor OK? */ ok,
 				)
 			case lcdlogger.SCREEN_WIFI:
@@ -132,7 +131,7 @@ func (a *Ay) Process() {
 					NUM_EQUIP,
 					commVerif,
 					/* WIFI */ flick.CONECTAD,
-					/* 4G */ flick.DESLIGAD,
+					/* 4G   */ flick.DESLIGAD,
 					wifiPing.Load(),
 				)
 			case lcdlogger.SCREEN_STAT:
@@ -188,6 +187,8 @@ func (a *Ay) Process() {
 					tagSet.Clear()
 				case lcdlogger.ACTION_USB:
 					err = CopyToUSB(&device, &tagsFile)
+
+					<-time.After(3 * time.Second)
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec
