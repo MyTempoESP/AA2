@@ -45,7 +45,7 @@ func (d *Device) Check() (check bool, err error) {
 
 		d.IsMounted = false
 		Umount()
-		
+
 		return
 	}
 

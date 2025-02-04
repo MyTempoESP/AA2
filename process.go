@@ -212,6 +212,10 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ALT_ACTION_RESTART:
 					err = RestartComputer()
+
+					if err == nil {
+						select {} // hang
+					}
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec

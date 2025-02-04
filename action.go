@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	file "aa2/file"
@@ -16,12 +17,15 @@ func CopyToUSB(device *usb.Device, file *file.File) (err error) {
 
 		if err != nil {
 
+			log.Println("Error mounting")
+
 			return
 		}
 	}
 
 	now := time.Now()
 
+	log.Println("copying")
 	err = file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
 
 	return
