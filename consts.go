@@ -10,3 +10,4 @@ const (
 	NAO_ENVIADOS_ROUTE    = "nao_enviados"
 	NAO_ENVIADOS_EXCHANGE = "nao_enviados"
 )
+

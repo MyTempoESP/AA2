@@ -24,6 +24,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o AA2
 # Stage 2: Create a small image using Alpine Linux
 FROM alpine:3.14
 
+RUN apk update && apk --no-cache add tzdata
+
 # Install any necessary packages, for example, CA certificates if needed
 # RUN apk --no-cache add ca-certificates
 

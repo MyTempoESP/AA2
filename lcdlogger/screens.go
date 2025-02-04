@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/MyTempoesp/flick"
+
+	c "aa2/constant"
 )
 
 const (
@@ -109,7 +111,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 
 func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
-	now := time.Now().Local()
+	now := time.Now().In(c.ProgramTimezone)
 	//log.Println("now", now)
 
 	display.DrawScreen(
