@@ -18,6 +18,7 @@ func (a *Ay) Process() {
 
 	var (
 		tags     atomic.Int64
+		tagsUSB  atomic.Int64
 		antennas [4]atomic.Int64
 	)
 
@@ -45,6 +46,7 @@ func (a *Ay) Process() {
 			antennas[(t.Antena-1)%4].Add(1)
 
 			tags.Add(1)
+			tagsUSB.Add(1)
 
 			tagSet.Insert(t.Epc)
 
@@ -188,7 +190,14 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_USB:
 					err = CopyToUSB(&device, &tagsFile)
 
-					<-time.After(3 * time.Second)
+					if err == nil {
+
+						t := tagsUSB.Load()
+
+						<-time.After(time.Duration(4+int(t/1000)) * time.Second)
+
+						tagsUSB.Store(0)
+					}
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec
