@@ -64,7 +64,6 @@ func (a *Ay) Process() {
 		tagSet.Clear()
 		tags.Store(0)
 		for i := range 4 {
-
 			antennas[i].Store(0)
 		}
 
@@ -87,6 +86,18 @@ func (a *Ay) Process() {
 	var wifiPing atomic.Int64
 
 	go pinger.NewPinger(wifiIP, &wifiState, &wifiPing)
+
+	Lte4GIP, err := pinger.Get4GIP()
+	var LteState atomic.Bool
+	var LtePing atomic.Int64
+
+	if err != nil {
+
+		log.Println("LTE OFF")
+	} else {
+
+		go pinger.NewPinger(Lte4GIP, &LteState, &LtePing)
+	}
 
 	display, displayErr := lcdlogger.NewSerialDisplay()
 
@@ -129,11 +140,24 @@ func (a *Ay) Process() {
 					/* leitor OK? */ ok,
 				)
 			case lcdlogger.SCREEN_WIFI:
+
+				wifi := flick.CONECTAD
+				if !wifiState.Load() {
+
+					wifi = flick.DESLIGAD
+				}
+
+				lte := flick.CONECTAD
+				if !LteState.Load() {
+
+					lte = flick.DESLIGAD
+				}
+
 				display.ScreenWifi(
 					NUM_EQUIP,
 					commVerif,
-					/* WIFI */ flick.CONECTAD,
-					/* 4G   */ flick.DESLIGAD,
+					/* WIFI */ wifi,
+					/* 4G   */ lte,
 					wifiPing.Load(),
 				)
 			case lcdlogger.SCREEN_STAT:
@@ -185,19 +209,31 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_WIFI: /* empty */
 				case lcdlogger.ACTION_TIME: /* empty */
 				case lcdlogger.ACTION_TAGS:
-					tags.Store(0)
-					tagSet.Clear()
-				case lcdlogger.ACTION_USB:
-					err = CopyToUSB(&device, &tagsFile)
+					{
 
-					if err == nil {
+						for i := range 4 {
+							antennas[i].Store(0)
+						}
 
-						t := tagsUSB.Load()
-
-						<-time.After(time.Duration(4+int(t/1000)) * time.Second)
-
-						tagsUSB.Store(0)
+						tags.Store(0)
+						tagSet.Clear()
 					}
+				case lcdlogger.ACTION_USB:
+					{
+
+						err = CopyToUSB(&device, &tagsFile)
+
+						if err == nil {
+
+							t := tagsUSB.Load()
+
+							<-time.After(time.Duration(4+int(t/1000)) * time.Second)
+
+							tagsUSB.Store(0)
+						}
+					}
+				default:
+					continue // no action
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec
