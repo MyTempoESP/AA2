@@ -30,6 +30,7 @@ const ( /* Labels Extras */
 	LABEL_RFID
 	LABEL_SERIE
 	LABEL_SIST
+
 	LABEL_CONFIRMA
 	LABEL_CONFIRMA2
 )
@@ -188,7 +189,7 @@ func (display *SerialDisplay) ScreenConfirma() {
 	display.DrawScreen(
 		fmt.Sprintf(
 			"fwd"+
-				"%d lbl fwd %d lbl fwd fwd",
+				" %d lbl fwd %d lbl fwd fwd",
 
 			LABEL_CONFIRMA, LABEL_CONFIRMA2,
 		),

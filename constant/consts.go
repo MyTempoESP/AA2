@@ -13,5 +13,5 @@ var (
 )
 
 const (
-	FORTH_BTN_PRESSED = "btn bst @ OR ."
+	FORTH_BTN_PRESSED = "btn ."
 )

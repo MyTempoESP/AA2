@@ -203,7 +203,12 @@ func (a *Ay) Process() {
 
 			if action, hasAction := display.Action(); hasAction {
 
-				display.ScreenProgress()
+				switch action {
+				case lcdlogger.ACTION_RESET:
+					display.ScreenConfirma()
+				default:
+					display.ScreenProgress()
+				}
 
 				err = nil
 
@@ -212,14 +217,14 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_TIME: /* empty */
 				case lcdlogger.ACTION_RESET:
 					{
-						display.ScreenConfirma()
-
-						hasKey := display.WaitKeyPress(3 * time.Second)
+						hasKey := display.WaitKeyPress(5 * time.Second)
 
 						if !hasKey { // timeout
 
 							continue
 						}
+
+						display.ScreenProgress()
 
 						// resetar equip
 
