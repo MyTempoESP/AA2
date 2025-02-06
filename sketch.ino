@@ -162,7 +162,7 @@ print_forthNumber()
   v = n4_pop();
 
   if (mag == 16) { // (special case) hex
-	  g_x += virt_scr_snprintf("%04x", v);
+	  g_x += virt_scr_sprintf("%04x", v);
 	  return;
   }
 
