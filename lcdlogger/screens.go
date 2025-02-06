@@ -17,11 +17,17 @@ const (
 	SCREEN_STAT
 	SCREEN_TIME
 	SCREEN_USB
+	SCREEN_INFO_EQUIP
 
 	SCREEN_COUNT
+)
 
-	SCREEN_EXTRA_USB_PROGRESS
-	SCREEN_EXTRA_WIFI_PROGRESS
+const ( /* Labels Extras */
+	LABEL_PROGRESSO = 13 + iota
+	LABEL_RFID
+	LABEL_SERIE
+	LABEL_SIST
+	LABEL_CONFIRMA
 )
 
 type IPOctets [4]int
@@ -155,12 +161,43 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 	)
 }
 
+func (display *SerialDisplay) ScreenInfoEquip(nome int) {
+
+	display.DrawScreen(
+		fmt.Sprintf(
+			"%d lbl %d num"+
+				" %d lbl %d lbl %d val"+
+				" %d lbl %d val"+
+				" %d lbl $%s hex",
+
+			flick.PORTAL, nome,
+			LABEL_RFID, flick.PORTAL, nome,
+			LABEL_SERIE, c.Serie,
+			LABEL_SIST, c.Version,
+		),
+	)
+}
+
+func (display *SerialDisplay) ScreenConfirmation() {
+
+	display.DrawScreen(
+		fmt.Sprintf(
+			"fwd fwd"+
+				"%d lbl fwd fwd",
+
+			LABEL_CONFIRMA,
+		),
+	)
+}
+
 func (display *SerialDisplay) ScreenProgress() {
 
 	display.DrawScreen(
 		fmt.Sprintf(
-			"fwd fwd" +
-				" 13 lbl fwd fwd",
+			"fwd fwd"+
+				" %d lbl fwd fwd",
+
+			LABEL_PROGRESSO,
 		),
 	)
 }
@@ -169,8 +206,10 @@ func (display *SerialDisplay) ScreenErr() {
 
 	display.DrawScreen(
 		fmt.Sprintf(
-			"fwd fwd" +
-				" 14 lbl fwd 15 lbl fwd",
+			"fwd fwd"+
+				" %d lbl fwd 15 lbl fwd",
+
+			LABEL_CONFIRMA,
 		),
 	)
 }

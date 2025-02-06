@@ -5,7 +5,7 @@
 #include <nanoFORTH.h>
 #include <string.h>
 
-#define LABEL_COUNT 16
+#define LABEL_COUNT 19
 
 const char* labels[] = {
   "PORTAL   My",
@@ -23,10 +23,14 @@ const char* labels[] = {
   "USB: ",
   "AGUARDE...",
   "ERRO, TENTAR",
-  "  NOVAMENTE"
+  "  NOVAMENTE", // 15
+
+  "RFID - ",
+  "SERIE: ",
+  "SIST. "
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,7,7,6
 };
 
 #define VALUE_COUNT 9
@@ -72,6 +76,7 @@ const char code[] PROGMEM =          ///< define preload Forth code here
   ": hms  256 ip  ;\n"
   ": usb  12  lbl ;\n"
   ": tim  11  lbl ;\n"
+  ": hex  16  fnm ;\n"
   
   // Text Decorations
   ": a    7 6 API ;\n" // Multi-Column
@@ -155,6 +160,11 @@ print_forthNumber()
 
   mag = n4_pop();
   v = n4_pop();
+
+  if (mag == 16) { // (special case) hex
+	  g_x += virt_scr_snprintf("%04x", v);
+	  return;
+  }
 
   postfix = (mag == 0) ?
       ' ' :

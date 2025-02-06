@@ -194,6 +194,8 @@ func (a *Ay) Process() {
 					commVerif,
 					devVerif,
 				)
+			case lcdlogger.SCREEN_INFO_EQUIP:
+				display.ScreenInfoEquip(NUM_EQUIP)
 			}
 
 			display.HandleActionButton()
