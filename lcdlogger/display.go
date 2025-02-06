@@ -94,15 +94,15 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	if res[0] == '-' { // onrelease
 
-		display.actionButtonHeld = false // button released
-
 		lht := display.actionButtonLHTime
 
-		if time.Now().After(lht.Add(time.Millisecond * 1300)) { // XXX: magic number
+		if display.actionButtonHeld && time.Now().After(lht.Add(time.Millisecond*2300)) { // XXX: magic number
 
 			display.action = Action(display.Screen)
 
 			display.actionButtonLHTime = time.Now().Add(time.Hour * 24)
+
+			display.actionButtonHeld = false // button released
 
 			return
 		}
