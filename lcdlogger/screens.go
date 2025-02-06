@@ -169,8 +169,8 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" %d lbl %d val"+
-				" %d lbl %d val"+
+				" %d lbl %d num"+
+				" %d lbl %d num"+
 				" %d lbl $%s hex",
 
 			flick.PORTAL, nome,
