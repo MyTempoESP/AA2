@@ -31,6 +31,7 @@ const ( /* Labels Extras */
 	LABEL_SERIE
 	LABEL_SIST
 	LABEL_CONFIRMA
+	LABEL_CONFIRMA2
 )
 
 type IPOctets [4]int
@@ -182,14 +183,14 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 	)
 }
 
-func (display *SerialDisplay) ScreenConfirmation() {
+func (display *SerialDisplay) ScreenConfirma() {
 
 	display.DrawScreen(
 		fmt.Sprintf(
-			"fwd fwd"+
-				"%d lbl fwd fwd",
+			"fwd"+
+				"%d lbl fwd %d lbl fwd fwd",
 
-			LABEL_CONFIRMA,
+			LABEL_CONFIRMA, LABEL_CONFIRMA2,
 		),
 	)
 }
@@ -210,8 +211,8 @@ func (display *SerialDisplay) ScreenErr() {
 
 	display.DrawScreen(
 		fmt.Sprintf(
-			"fwd fwd"+
-				" %d lbl fwd %d lbl fwd",
+			"fwd"+
+				" %d lbl fwd %d lbl fwd fwd",
 
 			LABEL_ERRO, LABEL_ERRO2,
 		),

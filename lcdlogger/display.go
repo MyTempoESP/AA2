@@ -1,8 +1,11 @@
 package lcdlogger
 
 import (
+	"context"
 	"log"
 	"time"
+
+	c "aa2/constant"
 
 	"github.com/MyTempoesp/flick"
 )
@@ -42,6 +45,38 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 	display.altAction = -1
 
 	return
+}
+
+func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), d)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+
+			hasKey = false
+
+			return
+		default:
+			{
+				res, err := display.Forth.Send(c.FORTH_BTN_PRESSED)
+
+				if err != nil {
+
+					continue
+				}
+
+				if res[0] == '-' {
+
+					hasKey = true
+
+					return
+				}
+			}
+		}
+	}
 }
 
 func (display *SerialDisplay) SwitchScreens() {

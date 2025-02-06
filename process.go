@@ -212,6 +212,15 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_TIME: /* empty */
 				case lcdlogger.ACTION_RESET:
 					{
+						display.ScreenConfirma()
+
+						hasKey := display.WaitKeyPress(3 * time.Second)
+
+						if !hasKey { // timeout
+
+							continue
+						}
+
 						// resetar equip
 
 						err = ResetarTudo()

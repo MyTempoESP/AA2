@@ -2,6 +2,8 @@ package lcdlogger
 
 import (
 	"time"
+
+	c "aa2/constant"
 )
 
 const (
@@ -44,7 +46,7 @@ func (display *SerialDisplay) HandleActionButton() {
 		return
 	}
 
-	res, err := display.Forth.Send("bst @ .") // ButtonSTate
+	res, err := display.Forth.Send(c.FORTH_BTN_PRESSED)
 
 	if err != nil {
 

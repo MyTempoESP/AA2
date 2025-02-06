@@ -11,3 +11,7 @@ var (
 	Reader             = os.Getenv("READER_NAME")
 	Serie              = 501
 )
+
+const (
+	FORTH_BTN_PRESSED = "btn bst @ OR ."
+)
