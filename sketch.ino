@@ -25,9 +25,9 @@ const char* labels[] = {
   "ERRO, TENTAR",
   "  NOVAMENTE", // 15
 
-  "RFID - ",
-  "SERIE: ",
-  "SIST. "
+  "RFID  -  ",
+  "SERIE:   ",
+  "SIST.    "
 };
 const int labels_len[LABEL_COUNT] = {
   11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,7,7,6
