@@ -210,6 +210,14 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_WIFI: /* empty */
 				case lcdlogger.ACTION_TIME: /* empty */
+				case lcdlogger.ACTION_RESET:
+					{
+						// resetar equip
+
+						err = ResetarTudo()
+						tagsFile.Clear()
+					}
+					fallthrough // resetar tags
 				case lcdlogger.ACTION_TAGS:
 					{
 

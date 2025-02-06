@@ -169,7 +169,8 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" %d lbl $%s hex %d num"+ // CA: chafon, FF: impinj
+				// ( ( CA: chafon, FF: impinj ) << 2 ) | ( reader name >> 1 )
+				" %d lbl $%s 2 LSH %d 1 RSH OR 16 fnm"+
 				" %d lbl %d num"+
 				" %d lbl $%s hex",
 

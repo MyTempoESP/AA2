@@ -37,6 +37,23 @@ func NewFile(nome string) (a File, err error) {
 	return
 }
 
+func (a *File) Clear() (err error) {
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	err = a.file.Truncate(0)
+
+	if err != nil {
+
+		return
+	}
+
+	_, err = a.file.Seek(0, 0)
+
+	return
+}
+
 func (a *File) Insert(content string) (err error) {
 
 	a.mu.Lock()

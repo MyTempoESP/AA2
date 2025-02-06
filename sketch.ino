@@ -27,7 +27,10 @@ const char* labels[] = {
 
   "RFID  -  ",
   "SERIE:   ",
-  "SIST.    "
+  "SIST.    ", // 18
+
+  "PRESSIONE"
+  "PARA CONFIRMAR"
 };
 const int labels_len[LABEL_COUNT] = {
   11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,7,7,6
