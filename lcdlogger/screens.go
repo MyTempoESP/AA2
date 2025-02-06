@@ -24,6 +24,9 @@ const (
 
 const ( /* Labels Extras */
 	LABEL_PROGRESSO = 13 + iota
+	LABEL_ERRO
+	LABEL_ERRO2
+
 	LABEL_RFID
 	LABEL_SERIE
 	LABEL_SIST
@@ -207,9 +210,9 @@ func (display *SerialDisplay) ScreenErr() {
 	display.DrawScreen(
 		fmt.Sprintf(
 			"fwd fwd"+
-				" %d lbl fwd 15 lbl fwd",
+				" %d lbl fwd %d lbl fwd",
 
-			LABEL_CONFIRMA,
+			LABEL_ERRO, LABEL_ERRO2,
 		),
 	)
 }
