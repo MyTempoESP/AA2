@@ -93,7 +93,7 @@ func (a *Ay) Process() {
 
 	if err != nil {
 
-		log.Println("LTE OFF")
+		log.Println("LTE OFF", err)
 	} else {
 
 		go pinger.NewPinger(Lte4GIP, &LteState, &LtePing)
