@@ -169,12 +169,12 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 	display.DrawScreen(
 		fmt.Sprintf(
 			"%d lbl %d num"+
-				" %d lbl %d num"+
+				" %d lbl $%s hex %d num"+ // CA: chafon, FF: impinj
 				" %d lbl %d num"+
 				" %d lbl $%s hex",
 
 			flick.PORTAL, nome,
-			LABEL_RFID, nome,
+			LABEL_RFID, c.Reader, nome,
 			LABEL_SERIE, c.Serie,
 			LABEL_SIST, c.Version,
 		),
