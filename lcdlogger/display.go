@@ -94,20 +94,22 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	if res[0] == '-' { // onrelease
 
+		log.Println("Released!")
+
 		lht := display.actionButtonLHTime
 
 		if display.actionButtonHeld && time.Now().After(lht.Add(time.Millisecond*2300)) { // XXX: magic number
 
+			log.Println("+ Action!")
+
 			display.action = Action(display.Screen)
 
-			display.actionButtonLHTime = time.Now().Add(time.Hour * 24)
-
-			display.actionButtonHeld = false // button released
-
-			return
+		} else {
+			display.Screen++
+			display.Screen %= SCREEN_COUNT
 		}
 
-		display.Screen++
-		display.Screen %= SCREEN_COUNT
+		display.actionButtonLHTime = time.Now().Add(time.Hour * 1)
+		display.actionButtonHeld = false // button released
 	}
 }

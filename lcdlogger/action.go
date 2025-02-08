@@ -2,6 +2,7 @@ package lcdlogger
 
 import (
 	"time"
+	"log"
 
 	c "aa2/constant"
 )
@@ -54,6 +55,8 @@ func (display *SerialDisplay) HandleActionButton() {
 	}
 
 	if res[0] == '-' {
+
+		log.Println("Clicked!")
 
 		display.actionButtonLHTime = time.Now()
 		display.actionButtonHeld = true

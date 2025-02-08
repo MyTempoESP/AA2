@@ -93,10 +93,10 @@ func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif, LTE4GVerif 
 				" %d lbl %d val"+
 				" %d lbl %d ms",
 
-			flick.PORTAL, nome,
-			flick.WIFI, wifiVerif,
-			flick.LTE4G, LTE4GVerif,
-			flick.PING, wifiPing,
+			flick.PORTAL, nome      ,
+			flick.WIFI  , wifiVerif ,
+			flick.LTE4G , LTE4GVerif,
+			flick.PING  , wifiPing  ,
 		),
 	)
 }
@@ -112,12 +112,12 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 				" %d %d atn"+ // A1 Val+Mag then display
 				" %d lbl %d val",
 
-			flick.PORTAL, nome,
-			a4.Value, a4.Magnitude,
-			a3.Value, a3.Magnitude,
-			a2.Value, a2.Magnitude,
-			a1.Value, a1.Magnitude,
-			LABEL_OFFLINE, 6,
+			flick.PORTAL , nome        ,
+			a4.Value     , a4.Magnitude,
+			a3.Value     , a3.Magnitude,
+			a2.Value     , a2.Magnitude,
+			a1.Value     , a1.Magnitude,
+			LABEL_OFFLINE, 6           ,
 		),
 	)
 }
@@ -146,10 +146,10 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 				" %d lbl %d val",
 
-			flick.PORTAL, nome,
-			now.Hour(), now.Minute(), now.Second(),
-			d, m, y,
-			LABEL_OFFLINE, 6,
+			flick.PORTAL , nome                      ,
+			now.Hour()   , now.Minute(), now.Second(),
+			d            , m           , y           ,
+			LABEL_OFFLINE, 6                         ,
 		),
 	)
 }
@@ -163,9 +163,9 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 				" fwd"+
 				" %d lbl %d val",
 
-			flick.PORTAL, nome,
-			devVerif,
-			LABEL_OFFLINE, 6,
+			flick.PORTAL ,nome,
+			devVerif          ,
+			LABEL_OFFLINE, 6  ,
 		),
 	)
 }
@@ -176,14 +176,14 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 		fmt.Sprintf(
 			"%d lbl %d num"+
 				// ( ( CA: chafon, FF: impinj ) << 2 ) | ( reader name >> 1 )
-				" %d lbl $%s 2 LSH %d 1 RSH OR 16 fnm"+
+				" %d lbl $%s 16 fnm"+
 				" %d lbl %d num"+
 				" %d lbl $%s hex",
 
 			flick.PORTAL, nome,
-			LABEL_RFID, c.Reader, nome,
-			LABEL_SERIE, c.Serie,
-			LABEL_SIST, c.Version,
+			LABEL_RFID  , c.Reader,
+			LABEL_SERIE , c.Serie,
+			LABEL_SIST  , c.Version,
 		),
 	)
 }
@@ -195,7 +195,8 @@ func (display *SerialDisplay) ScreenConfirma() {
 			"fwd"+
 				" %d lbl fwd %d lbl fwd fwd",
 
-			LABEL_CONFIRMA, LABEL_CONFIRMA2,
+			LABEL_CONFIRMA,
+			LABEL_CONFIRMA2,
 		),
 	)
 }
@@ -219,7 +220,8 @@ func (display *SerialDisplay) ScreenErr() {
 			"fwd"+
 				" %d lbl fwd %d lbl fwd fwd",
 
-			LABEL_ERRO, LABEL_ERRO2,
+			LABEL_ERRO,
+			LABEL_ERRO2,
 		),
 	)
 }

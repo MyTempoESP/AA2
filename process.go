@@ -201,7 +201,7 @@ func (a *Ay) Process() {
 
 						// resetar equip
 
-						err = ResetarTudo()
+						// err = ResetarTudo()
 						tagsFile.Clear()
 					}
 					fallthrough // resetar tags
