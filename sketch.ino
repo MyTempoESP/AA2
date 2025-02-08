@@ -5,7 +5,7 @@
 #include <nanoFORTH.h>
 #include <string.h>
 
-#define LABEL_COUNT 22
+#define LABEL_COUNT 23
 
 const char* labels[] = {
   "PORTAL   My",
@@ -32,10 +32,11 @@ const char* labels[] = {
   "PRESSIONE",
   "PARA CONFIRMAR", // 20
 
-  "OFFLINE" // 21
+  "OFFLINE",
+  "DATA: " // 22
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6
 };
 
 #define VALUE_COUNT 9
@@ -184,12 +185,12 @@ print_forthNumber()
 void
 forth_ip()
 {
-  int f;
+  int f = n4_pop();
 
-  if ((f = n4_pop()) == 256) {
-    g_x += virt_scr_sprintf("%02d:%02d:%02d", n4_pop(), n4_pop(), n4_pop());
-  } else if (f == 0xDA7E) {
+  if (f >= 0xDA7E) {
     g_x += virt_scr_sprintf("%02d/%02d/%04d", n4_pop(), n4_pop(), n4_pop());
+  } else if (f >= 256) {
+    g_x += virt_scr_sprintf("%02d:%02d:%02d", n4_pop(), n4_pop(), n4_pop());
   } else {
     g_x += virt_scr_sprintf( "%d.%d.%d.%d", n4_pop(), n4_pop(), n4_pop(), f);
   }
