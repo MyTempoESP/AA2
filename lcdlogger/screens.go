@@ -58,7 +58,7 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 			flick.PORTAL, nome,
 			flick.REGIST, tags.Value, tags.Magnitude,
 			flick.UNICAS, tagsUnicas.Value, tagsUnicas.Magnitude,
-			flick.COMUNICANDO, commVerif,
+			flick.WIFI, commVerif,
 		),
 	)
 }
@@ -77,7 +77,7 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leito
 			flick.PORTAL, nome,
 			flick.IP, ip[0], ip[1], ip[2], ip[3],
 			flick.LEITOR, leitorOk,
-			flick.COMUNICANDO, commVerif,
+			flick.WIFI, commVerif,
 		),
 	)
 }
@@ -115,7 +115,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 			a3.Value, a3.Magnitude,
 			a2.Value, a2.Magnitude,
 			a1.Value, a1.Magnitude,
-			flick.COMUNICANDO, commVerif,
+			flick.WIFI, commVerif,
 		),
 	)
 }
@@ -123,6 +123,7 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 
 	now := time.Now().In(c.ProgramTimezone)
+	y,m,d := now.Date()
 	//log.Println("now", now)
 
 	display.DrawScreen(
@@ -139,13 +140,14 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 				" %d %d hms"+
 
 				// skip line
-				" fwd"+
+				" spc spc $DA7E %d %d %d ip"+
 
 				" %d lbl %d val",
 
 			flick.PORTAL, nome,
 			now.Hour(), now.Minute(), now.Second(),
-			flick.COMUNICANDO, commVerif,
+			d, m, y,
+			flick.WIFI, commVerif,
 		),
 	)
 }
@@ -161,7 +163,7 @@ func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
 
 			flick.PORTAL, nome,
 			devVerif,
-			flick.COMUNICANDO, commVerif,
+			flick.WIFI, commVerif,
 		),
 	)
 }

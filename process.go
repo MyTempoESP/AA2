@@ -81,24 +81,6 @@ func (a *Ay) Process() {
 
 	go pinger.NewPinger(readerIP, &readerState, nil)
 
-	var wifiIP = os.Getenv("MYTEMPO_API_URL")
-	var wifiState atomic.Bool
-	var wifiPing atomic.Int64
-
-	go pinger.NewPinger(wifiIP, &wifiState, &wifiPing)
-
-	Lte4GIP, err := pinger.Get4GIP()
-	var LteState atomic.Bool
-	var LtePing atomic.Int64
-
-	if err != nil {
-
-		log.Println("LTE OFF", err)
-	} else {
-
-		go pinger.NewPinger(Lte4GIP, &LteState, &LtePing)
-	}
-
 	display, displayErr := lcdlogger.NewSerialDisplay()
 
 	if displayErr != nil {
@@ -114,7 +96,7 @@ func (a *Ay) Process() {
 
 		for {
 
-			commVerif := flick.WEB
+			commVerif := flick.DESLIGAD
 
 			switch display.Screen {
 			case lcdlogger.SCREEN_TAGS:
@@ -141,24 +123,15 @@ func (a *Ay) Process() {
 				)
 			case lcdlogger.SCREEN_WIFI:
 
-				wifi := flick.CONECTAD
-				if !wifiState.Load() {
-
-					wifi = flick.DESLIGAD
-				}
-
-				lte := flick.CONECTAD
-				if !LteState.Load() {
-
-					lte = flick.DESLIGAD
-				}
+				wifi := flick.DESLIGAD
+				lte := flick.DESLIGAD
 
 				display.ScreenWifi(
 					NUM_EQUIP,
 					commVerif,
 					/* WIFI */ wifi,
 					/* 4G   */ lte,
-					wifiPing.Load(),
+					-1,
 				)
 			case lcdlogger.SCREEN_STAT:
 				display.ScreenStat(
