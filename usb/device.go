@@ -35,16 +35,32 @@ func (d *Device) Mount(mountPoint string) (err error) {
 	return
 }
 
+func (d *Device) Umount() (err error) {
+
+	log.Println("@ USB - UMOUNTING DEVICE")
+
+	d.IsMounted = false
+
+	err = Umount()
+
+	return
+}
+
 func (d *Device) Check() (check bool, err error) {
 
 	d.Name, check, err = CheckUSBStorageDevice(d.FS)
+
+	if err != nil {
+
+		return
+	}
 
 	if !check && d.IsMounted {
 
 		log.Println("@ USB - DEVICE REMOVED")
 
 		d.IsMounted = false
-		Umount()
+		err = Umount()
 
 		return
 	}

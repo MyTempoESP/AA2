@@ -88,5 +88,14 @@ func CopyToUSB(device *usb.Device, file *file.File) (err error) {
 
 	err = file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
 
+	if err != nil {
+
+		log.Println(err)
+
+		return
+	}
+
+	err = device.Umount()
+
 	return
 }
