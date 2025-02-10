@@ -5,10 +5,10 @@
 #include <nanoFORTH.h>
 #include <string.h>
 
-#define LABEL_COUNT 16
+#define LABEL_COUNT 23
 
 const char* labels[] = {
-  "PORTAL  My",
+  "PORTAL   My",
   "ATLETAS  ",
   "REGIST.  ",
   "COMUNICANDO ",
@@ -23,10 +23,20 @@ const char* labels[] = {
   "USB: ",
   "AGUARDE...",
   "ERRO, TENTAR",
-  "  NOVAMENTE"
+  "  NOVAMENTE", // 15
+
+  "RFID  -  ",
+  "SERIE:   ",
+  "SIST.    ", // 18
+
+  "PRESSIONE",
+  "PARA CONFIRMAR", // 20
+
+  "OFFLINE",
+  "DATA: " // 22
 };
 const int labels_len[LABEL_COUNT] = {
-  10,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6
 };
 
 #define VALUE_COUNT 9
@@ -136,8 +146,8 @@ const char code[] PROGMEM =
   ": aPr "             // A.PR(--)
     " aIN IN 0 = ;" NL //       ALT  , a.Pr, ALT  PRESSED
 
-  ": cAl"              // CAL ( b.Pr b.ST -- b.RL b.ST' )
-    " DUP ROT SWP"     // Desc: "CALculates" the truth
+  ": b?"               // B.? ( b.Pr b.ST -- b.RL b.ST' )
+    " DUP ROT SWP"     // Desc: returns the truth
     " NOT AND ;"    NL // value of b.RL, i.e. checks if
   //                      the button has been PR + RL
   //                      (RELEASED), from the current
@@ -152,63 +162,6 @@ const char code[] PROGMEM =
       " Scr @ 1 +"     // m.RL is set.
       " 7 MOD"
       " Scr ! THN ;"NL
-
-  ": bAc"              // B.AC( b.LH  b.LH-      ...
-  //                      ...   b.RL  b.ST' b.ST ...
-  //                      ...       --           ...
-  //                      ...    setclock?  b.AC )
-  //                      Desc: checks if the LastHeld
-  //                      timestamp is > 2000, signaling
-  //                      an action. Also checks if
-  //                      you should reset b.LH.
-    " SWP ROT IF"        
-      " DNG CLK D+"    
-      " DRP"
-      " 2000 >"        // is TOS > 2000?, result is b.AC
-    " ELS DRP DRP 0"
-    " THN SWP ROT"
-    " NOT AND ;"    NL // b.ST' ^ ~b.ST = setclock?
-
-  ": mec"
-    " "
-  " ;"
-
-  ": mAc"
-    " 0 0"             // ( m.LH  m.LH-      )
-    " NOP NOP"
-    " bAc"             // ( m.LH' m.LH'- ... )
-    " IF"
-      " $ADB7 ' mAc !" // CLK NOP
-      " $B7B7 ' mAc 2 + !"
-    " THN ;"        NL
-
-  ": aAc"
-    " 0 0"             // ( a.LH  a.LH-      )
-    " bAc"             // ( a.LH' a.LH'- ... )
-    " IF"
-      " CLK ' aAc ! ' aAc 2 + !"
-    " THN ;"        NL
-
-  ": mUp"
-    " mST @ DUP mPr"
-    " cAl SWP"
-    " DUP mST !"    NL
-    " SWP"
-    " DUP sWi mAc"
-    " Mac ! ;"      NL
-
-  ": aUp"
-    " aST @ DUP aPr"
-    " cAl SWP"
-    " DUP aST !"    NL
-    " SWP"
-    " DUP sWi aAc"
-    " Aac ! ;"      NL
-
-  ": bUp"              // b::Up(--)
-    " Mac @ NOT IF mUp THN"
-    " Aac @ NOT IF aUp THN"
-  " ;"              NL
 
 // Screen.fth
 
@@ -230,7 +183,7 @@ const char code[] PROGMEM =
 
   // escovando bit
   // Antenna Data
-  ": atn" // ( N Mag N Mag N Mag N Mag -- )
+  ": aTn" // ( N Mag N Mag N Mag N Mag -- )
     A "1 nUm" COLON "fNm" SPACE
     A "2 nUm" COLON "fNm fWd"
   /**/              NL
@@ -248,22 +201,38 @@ const char code[] PROGMEM =
     " NOP NOP"      NL
 
     // Heading: 9 bytes
-    " 0 lBl VER nUm fWd"
+    " 0 lBl VER nUm fWd" // fWd ($8D)
 
     // +0x11 (dec 17)
-    " NOP NOP NOP NOP NOP fWd"
-    " NOP NOP NOP NOP NOP fWd"
+    " TAG NOP NOP NOP NOP fWd"
+    " TAG NOP NOP NOP NOP fWd"
 
-    // Heading: 8 bytes
-    " 3 lBl 0 vAl fWd"
+    // Heading: 9 bytes
+    " 3 lBl 0 vAl NOP fWd"
 
     " 0 API"
   " ;"              NL
 
+  " ' Dis VAL DAT"  NL
+    " R>  VAL LB2"  NL
+    " R>  VAL LB1"  NL
+
+  ": Atn"
+    " DAT ! DAT 2 + ! DAT 4 + ! DAT 6 + !"
+    " TAG NOP NOP"     // $bf[0000], 16-bit literal
+    " LB1 !"           // Placeholder for addr of aTn + CALL
+  " ;"              NL
+  
+  "$C000 ' aTn OR R>"  // make a Call instruction: $c0|[ADDR],
+  //                      then fetch TAGged addr from Rstack 
+  " $BF OVR C! 1 + !"  // put $bf on the tagged addr,
+  //                      then put the baked call after it.
+  /**/              NL
+
 // Timers.fth
   "500 DLY"         NL // Wait until everything is loaded
   //"10 0 TMI bUp"    NL // Init button checking
-  "50 1 TMI Dis"    NL // Init display
+  "50 0 TMI Dis"    NL // Init display
   "1 TME"           NL // Init timers
 ;
 
@@ -351,12 +320,14 @@ print_forthNumber()
 void
 forth_ip()
 {
-  int f;
+  int f = n4_pop();
 
-  if ((f = n4_pop()) >= 256) {
+  if (f >= 0xDA7E) {
+    g_x += virt_scr_sprintf("%02d/%02d/%04d", n4_pop(), n4_pop(), n4_pop());
+  } else if (f >= 256) {
     g_x += virt_scr_sprintf("%02d:%02d:%02d", n4_pop(), n4_pop(), n4_pop());
   } else {
-    g_x += virt_scr_sprintf("%d.%d.%d.%d", n4_pop(), n4_pop(), n4_pop(), f);
+    g_x += virt_scr_sprintf( "%d.%d.%d.%d", n4_pop(), n4_pop(), n4_pop(), f);
   }
 }
 
@@ -369,7 +340,6 @@ forth_number()
 void
 forth_label()
 {
-  char* buf;
   int v;
 
   if ((v = n4_pop()) >= LABEL_COUNT || v < 0) return;
