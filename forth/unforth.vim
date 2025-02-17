@@ -58,7 +58,7 @@ func! Mangle(word_def, prefix)
 	let g:varnames_used = g:varnames_used . l:generated_name . ';'
 
 	exe '%sub/' . l:word_call . '/' . l:generated_name . '/g'
-	exe 'normal!' . 'ggo// @"' . line('.') . '/' . l:generated_name . '	->	' . a:word_def
+	exe 'normal!' . 'ggo// @' . line('.') . '/' . l:generated_name . '	->	' . a:word_def
 endf
 
 func! MangleWord() " this function must be called only on lines with a forth word definition
@@ -96,6 +96,9 @@ func! Unforth(outfile) abort
 	" 3-byte tagged buffer
 	silent! %s/#3/TAG NOP NOP/
 
+	" 3-byte untagged buffer
+	silent! %s/#_3/NOP NOP NOP/
+
 	" 4-byte tagged buffer
 	silent! %s/#4/TAG NOP NOP NOP/
 
@@ -103,10 +106,6 @@ func! Unforth(outfile) abort
 	silent! %s/#_4/NOP NOP NOP NOP/
 
 	" actual forth stuff
-
-	" Mangle word names to avoid conflicts
-	g/^:/cal MangleWord()
-	g/VARIABLE\|VALUE/cal MangleVar()
 
 	" remove quotes
 	cal Remove('"')
@@ -125,6 +124,10 @@ func! Unforth(outfile) abort
 
 	" remove excess whitespace
 	%s/\( \)\+/\1/g
+
+	" Mangle word names to avoid conflicts
+	g/^:/cal MangleWord()
+	g/VARIABLE\|VALUE/cal MangleVar()
 
 	cal AbbrevPrimitives()
 

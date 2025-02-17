@@ -1,4 +1,4 @@
-\ __MYTEMPO_FTH__
+\ __AA2_FTH__
 
 \ General overview
 
@@ -10,27 +10,52 @@
 
 \ Tagged addresses are denoted by [ADDR_NAME]
 \ the word for them is TAG, which puts the
-\ address inside the function in the return stack.
+\ address inside the function in the ~~return~~ normal stack.
 
-\ Values greater than $7F have to be encoded using the 16-bit-encode word
+\ Values greater than $7F have to be 'encoded' using the 16-bit-encode word
 
-\ type BigNumber -> 32-bit, format: $BF prefixed 16-bit value + 8-bit magnitude
+\ type BigNumber -> 32-bit, format: $BF(8-bit) prefixed 16-bit value + 8-bit magnitude
 \                   like: 0xBF[vvvv][mm], example: 0xBF004103 [65K]
 
 \ #3  -> TAG NOP NOP    , 3-byte tagged   buffer, this is usually a placeholder for a CALL instruction;
 \ #4  -> TAG NOP NOP NOP, 4-byte tagged   buffer, this is usually a placeholder for code, allowing 2 calls;
+\ #_3 -> NOP NOP NOP    , 3-byte tagged   buffer.
 \ #_4 -> NOP NOP NOP NOP, 4-byte untagged buffer, this is usually a placeholder for raw data.
 
-\ functions tagged with an asterisk(*) need to be double checked for duplicate names, consider only the first 3 chars!!
+\ Word names ending with a ! mean they WRITE something to memory.
+\ Word names ending with a @ mean they FETCH something from memory.
+
+\ functions marked with an asterisk(*) need to be double checked for duplicate names, consider only the first 3 chars!!
 \ they are also EXTERNAL, DO NOT CALL THEM IN THIS SOURCE CODE!
+
+\ the words 'alignment' and other technical terms are severely misused in this source code, so refer to the following definitions:
+
+\	'alignment'/'align'/'aligned'	generally means something is offset according to a given byte size
+\					... e.g. BigNumbers are 4-byte values, therefore anything written after
+\					... a BigNumber has to be 'aligned' by 4 bytes, i could say 'corrected' or
+\					... 'skip 4 bytes', but aligned sounds smarter. Fake it til' you make it!
+
+\	'instruction'			an instruction is simply an opcode | whatever arguments it may have, it does not
+\					... exceed 3 bytes.
+
+\	'encode'/'encoded'/'encoding'	this one is funny, because of how wrong it is.
+\					... Unfortunately, we can't just shove a random value in memory,
+\					... instead, we build an instruction which tells the computer:
+\					... 'push this random number to the stack'. Then we put THAT in memory.
+\					... We called that technique 'encoding'(TM)
+
+\									[useless technical details]
+\					there's something in forth called a LIT instruction, which, if you don't know forth,
+\					... simply pushes a number to the stack. In nanoFORTH, LIT has the opcode 0xBF, followed
+\					... by the actual 16-bit number.
 
 \ ======================
 
-\ C-API Drawing instructions
+\ C-API Drawing words
 
 : Label    5   API ;
 : Forward  2   API ;
-: BigNum   1   API ; ( ; biblically accurate dump of 65K in BigNumber format: 0xBF004103 )
+: BigNum   1   API ; ( ; biblically accurate dump of 65K in BigNumber format: 0xBF004103, precision is for nerds )
 : Number   4   API ;
 : Value    6   API ;
 : Ip       7   API ;
@@ -45,31 +70,30 @@
 \ ======================
 
 501 VALUE VERSION
+16  VALUE DATA-SIZE
 
 \ The screen
 
 : Dis			( -- ; Screen buffer )
-	NOP NOP NOP NOP
-	NOP NOP NOP NOP
-	NOP NOP NOP NOP
-	NOP NOP NOP NOP
+	#_4 #_4 #_4 #_3 TAG	( COMPILE TIME: data-end-addr ; 16 byte data buffer ) 
 
 	0       Label		( label-id ; Main label, shows device name )
 	VERSION Number		( device-version )
-	Forward
+	        Forward
 
-	TAG NOP NOP NOP Forward ( COMPILE TIME: tagged-addr )
-	TAG NOP NOP NOP Forward ( COMPILE TIME: tagged-addr tagged-addr-2 )
+	#4      Forward		( COMPILE TIME: tagged-addr )
+	#4      Forward		( COMPILE TIME: tagged-addr tagged-addr-2 )
 
 	3       Label NOP	( label-id ; Main label #2, shows device connectivity )
 	0       Value		( value-id )
-	Forward
+	        Forward
 
 	0 API			( 0 ; C-Api call #0: Draw screen )
 ;
 
-VALUE 2-CODE     ( tagged-addr tagged-addr-2 ; Address of the second screen code buffer )
-VALUE 1-CODE     ( tagged-addr ; Address of the first screen code buffer )
+VALUE 2-CODE     ( data-end-addr tagged-addr tagged-addr-2 ; Address of the second screen code buffer )
+VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the first screen code buffer )
+VALUE DATA-END	 ( data-end-addr                           ; end of data marker )
 
 ' Dis VALUE DATA ( ; Address of beginning of screen data buffer )
 
@@ -81,7 +105,7 @@ VALUE 1-CODE     ( tagged-addr ; Address of the first screen code buffer )
 	$BF			( int16 addr Lit-opcode      ; $BF is the opcode for pushing 16-bit integers to the stack )
 	OVER C!			( int16 addr Lit-opcode addr ; writes a single byte LIT instruction to addr )
 	1 +			( int16 addr +1              ; offsets addr by 1, right next to the LIT opcode )
-	!			( int16 addr'                ; writes a 2-byte, i.e. 16-bit, signed integer to addr' )
+	      !			( int16 addr'                ; writes a 2-byte, i.e. 16-bit, signed integer to addr' )
 ;
 
 : F!			( m v iaddr -- )
@@ -89,34 +113,39 @@ VALUE 1-CODE     ( tagged-addr ; Address of the first screen code buffer )
 	16-bit-encode!		( m v iaddr       ; encodes value to specified DATA buffer index )
 	R>			( m   iaddr       ; restores indexed-addr from Rstack )
 	3 +			( m   iaddr +3    ; offsets the indexed address by 3 bytes )
-	C!			( m   iaddr'      ; writes the single-byte magnitude right next to the encoded value )
+	     C!			( m   iaddr'      ; writes the single-byte magnitude right next to the encoded value )
 ;
 
 : calc-align		( idx align addr -- iaddr ; calculates aligned offset of the specified index )
 	>R			( idx align addr )
-	*			( idx align      ; calculates ALIGN-byte *offset* )
+	 *			( idx align      ; calculates ALIGN-byte *offset* )
 	R>			( offset         )
-	+			( offset addr    ; calculates base address + offset to get the indexed-address )
+	 +			( offset addr    ; calculates base address + offset to get the indexed-address )
 ;
 
 \ ======================
 
 \ Aligned writes
 
+: get-data-index	( idx align -- DATA-addr ; get the correct address of index in DATA, since we pull data from it backwards )
+	*  NEG			( idx align      ; multiply size and index, then negate the offset to invert it )
+	DATA-END +		( reverse-offset ; get the address )
+;
+ 
 : aligned-data!		( value idx align -- ; n-byte aligned 16-bit write to DATA buffer )
-	DATA calc-align		( value idx align )
+	get-data-index		( value idx align )
 	16-bit-encode!		( value iaddr     ; encodes value to specified DATA buffer index )
 ;
 
 : aligned-data-C!	( value idx align -- ; n-byte aligned 8-bit write to DATA buffer )
-	DATA calc-align		( value idx align )
-	C!			( value iaddr     ; encodes value to specified DATA buffer index )
+	get-data-index          ( value idx align ) 
+	            C!		( value iaddr     ; encodes value to specified DATA buffer index )
 ;
 
-: aligned-data-Big!	( m v idx -- ; 4-byte aligned BigNumber write to DATA buffer, refer to the BigNumber type )
+: data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
 	4			( value idx align ; this one has fixed alignment because 4 is the max size )
-	DATA calc-align		( value idx align ; each BigNumber has a 3-byte encoded value + a single-byte magnitude )
-	F!			( value iaddr     ; writes a BigNumber to the specified DATA index )
+	get-data-index          ( value idx align ) 
+	            F!		( value iaddr     ; writes a BigNumber to the specified DATA index )
 ;
 
 \ ======================
@@ -151,10 +180,10 @@ VALUE 1-CODE     ( tagged-addr ; Address of the first screen code buffer )
 \ Screen-specific words
 
 : Antenna!   		( m1 v1 m2 v2 m3 v3 m4 v4 -- ; magnitude and value for each antenna )
-	0 aligned-data-Big!	( m1 v1 m2 v2 m3 v3 m4 v4 idx )
-	1 aligned-data-Big!	( m1 v1 m2 v2 m3 v3       idx )
-	2 aligned-data-Big!	( m1 v1 m2 v2             idx )
-	3 aligned-data-Big!	( m1 v1                   idx )
+	1 data-Big!		( m1 v1 m2 v2 m3 v3 m4 v4 idx )
+	2 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
+	3 data-Big!		( m1 v1 m2 v2             idx )
+	4 data-Big!		( m1 v1                   idx )
 ;
 
 \ LABELS:
@@ -213,9 +242,7 @@ VALUE 1-CODE     ( tagged-addr ; Address of the first screen code buffer )
 
 \	Or in shorthand form:
 
-\	  $22 14 1 adC
-\	  $01 15 1 adC
-\	  Lbl 0 1-C ci! Num 1 1-C ci!
+\	  $22 14 1 adC $01 15 1 adC Lbl 0 1-C ci! Num 1 1-C ci!
 
 \ ======================
 
@@ -286,35 +313,46 @@ VARIABLE confirm-state
 
 \ ======================
 
-\ Extern signatures in alphabetical order
+\ Screen function addresses
 
-\            ___
-1-CODE VALUE 1-C*	( ; extern )
-2-CODE VALUE 2-C*	( ; extern )
+' Label   VALUE addr-Label
+' Forward VALUE addr-Forward
+' BigNum  VALUE addr-BigNum
+' Number  VALUE addr-Number
+' Value   VALUE addr-Value
+' Ip      VALUE addr-Ip
+' Ms      VALUE addr-Ms
+' antenna VALUE addr-antenna
 
-\ ___
-: Atn* Antenna!          ; ( I8 I16 I8 I16 I8 I16 I8 I16 ; extern )
-: ad!* aligned-data!     ; ( I16      idx align          ; extern )
-: adB* aligned-data-Big! ; ( I8 I16   idx                ; extern )
-: adC* aligned-data-C!   ; ( I8       idx align          ; extern )
-: ci!* call-idx!	 ; ( U16-addr idx U16-addr       ; extern )
-: Dis* Dis               ; (                             ; extern )
+\ Screen functions
 
-' Label   VALUE Lbl* ( ; extern )
-' Forward VALUE Fwd* ( ; extern )
-' BigNum  VALUE Big* ( ; extern )
-' Number  VALUE Num* ( ; extern )
-' Value   VALUE Val* ( ; extern )
-' Ip      VALUE IP-* ( ; extern )
-' Ms      VALUE MS-* ( ; extern )
-' antenna VALUE atn* ( ; extern )
+: program-calls!	( addr-W1 addr-W2 n-CODE -- ; programs the passed words into the specified CODE section )
+	DUP R> R>		( addr-W1 addr-W2 n-CODE -- addr-W1 addr-W2 ; puts n-CODE in the return stack for 2 uses )
+	1      >R call-idx!	( addr-W1 addr-W2 ; programs W2 to n-CODE index 1 )
+	0   >R    call-idx!	( addr-W1         ; programs W1 to n-CODE index 0 )
+;
+
+: S_1* ( ; extern, Tags+Unicas )
+
+	$02 1 4 aligned-data-C!	( label-id index alignment )
+	$22 2   data-Big!	( number   index           ; automatic alignment )
+
+	addr-Label addr-Number
+	1-CODE program-calls!
+
+	$02 3 1 aligned-data-C!
+	$22 4 1 aligned-data-Big!
+
+	addr-Label addr-Number
+	2-CODE program-calls!
+;
 
 \ ======================
 
 \ Initialization
 
 1500 DLY
-\ 50 0 TMI Dis
+50 0 TMI Dis
 \ 10 1 TMI do-button
 1 TME
 

@@ -177,7 +177,7 @@ forth_line_feed()
   g_virt_scr[g_y][g_x] = '\0';
 
   g_x = 0;
-  if (g_y++ >= (VIRT_SCR_ROWS - 1)) g_y = VIRT_SCR_ROWS - 1;
+  g_y++;
 }
 
 void
@@ -187,7 +187,7 @@ draw()
   g_y = 0;
   g_x = 0;
 
-  for (int i = 0; i < VIRT_SCR_ROWS; i++){
+  for (int i = 0; i < VIRT_SCR_ROWS; i++) {
 
     lcd.setCursor(0, i);
 
