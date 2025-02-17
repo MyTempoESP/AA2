@@ -1,10 +1,8 @@
-//#include <EnableInterrupt.h>
 #include <LiquidCrystal_I2C.h>
-//#include <Wire.h>
-//#include <HardwareSerial.h>
-#include "nanoFORTH.h"
 #include <string.h>
-#include <forth2cstr.h>
+
+#include "nanoFORTH.h"
+#include "forth2cstr.h" // compiled forth code
 
 #define LABEL_COUNT 23
 
