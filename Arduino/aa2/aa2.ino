@@ -1,9 +1,8 @@
-//#include <EnableInterrupt.h>
 #include <LiquidCrystal_I2C.h>
-//#include <Wire.h>
-//#include <HardwareSerial.h>
-#include <nanoFORTH.h>
 #include <string.h>
+
+#include "nanoFORTH.h"
+#include "forth2cstr.h" // compiled forth code
 
 #define LABEL_COUNT 23
 
@@ -52,49 +51,6 @@ const char* values[] = {
   "A",
   ": "
 };
-
-const char code[] PROGMEM =          ///< define preload Forth code here
-
-// Button.fth
-  "VAR bac\n"
-  "VAR bst\n"
-  "VAR ba2\n"
-  "VAR bs2\n"
-  ": btn 6 IN 0 = ;\n"
-  ": bt2 7 IN 0 = ;\n"
-  ": bfy DUP ROT SWP NOT AND ;\n" // ( btn bst -- bac bst_new )
-  ": pr1 bac @ NOT IF bst @ btn bfy bac ! bst ! THN ;\n"
-  ": pr2 ba2 @ NOT IF bs2 @ bt2 bfy ba2 ! bs2 ! THN ;\n"
-  ": chb pr1 pr2 ;\n"
-  "10 0 TMI chb 1 TME\n"
-
-// Screen.fth
-  ": lbl  5   API ;\n"
-  ": fwd  2   API ;\n"
-  ": lit  API fwd ;\n"
-  ": fnm  1   lit ;\n"
-  ": fni  1   API ;\n" // Multi-Column
-  ": num  4   lit ;\n"
-  ": nui  4   API ;\n" // Multi-Column
-  ": val  6   lit ;\n"
-  ": ip   7   lit ;\n"
-  ": ms   3   lit ;\n"
-  ": hms  256 ip  ;\n"
-  ": usb  12  lbl ;\n"
-  ": tim  11  lbl ;\n"
-  ": hex  16  fnm ;\n"
-  
-  // Text Decorations
-  ": a    7 6 API ;\n" // Multi-Column
-  ": spc  6 6 API ;\n" // Multi-Column
-  ": sep  8 6 API ;\n" // Multi-Column
-
-  // Antenna Data
-  ": atn " // ( N Mag N Mag N Mag N Mag -- )
-    "a 1 nui sep fni spc a 2 nui sep fnm "
-    "a 3 nui sep fni spc a 4 nui sep fnm "
-  ";\n"
-;
 
 #define VIRT_SCR_COLS 20
 #define VIRT_SCR_ROWS 4
@@ -167,11 +123,6 @@ print_forthNumber()
   mag = n4_pop();
   v = n4_pop();
 
-  if (mag == 16) { // (special case) hex
-	  g_x += virt_scr_sprintf("%04x", v);
-	  return;
-  }
-
   postfix = (mag == 0) ?
       ' ' :
       (mag >= 3 && mag < 6 ? 'K' : 'M');
@@ -205,7 +156,6 @@ forth_number()
 void
 forth_label()
 {
-  char* buf;
   int v;
 
   if ((v = n4_pop()) >= LABEL_COUNT || v < 0) return;
@@ -218,6 +168,8 @@ forth_label()
 void
 forth_line_feed()
 {
+  if (g_y >= VIRT_SCR_ROWS - 1) return;
+
   for (; g_x < VIRT_SCR_COLS - 1; g_x++)
     g_virt_scr[g_y][g_x] = ' ';
 
@@ -225,7 +177,7 @@ forth_line_feed()
   g_virt_scr[g_y][g_x] = '\0';
 
   g_x = 0;
-  if (g_y++ >= (VIRT_SCR_ROWS - 1)) g_y = VIRT_SCR_ROWS - 1;
+  g_y++;
 }
 
 void
@@ -235,7 +187,7 @@ draw()
   g_y = 0;
   g_x = 0;
 
-  for (int i = 0; i < VIRT_SCR_ROWS; i++){
+  for (int i = 0; i < VIRT_SCR_ROWS; i++) {
 
     lcd.setCursor(0, i);
 
