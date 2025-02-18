@@ -10,7 +10,7 @@ endf
 
 func! AbbrevPrimitives()
 
- 	" substitution table
+	" substitution table
 	silent! %s/HERE/HRE/g
 	silent! %s/VALUE/VAL/g
 	silent! %s/NEXT/NXT/g
@@ -94,16 +94,16 @@ func! Unforth(outfile) abort
 	" My shorthands:
 
 	" 3-byte tagged buffer
-	silent! %s/#3/TAG NOP NOP/
+	silent! %s/#3/TAG NOP NOP/g
 
 	" 3-byte untagged buffer
-	silent! %s/#_3/NOP NOP NOP/
+	silent! %s/#_3/NOP NOP NOP/g
 
 	" 4-byte tagged buffer
-	silent! %s/#4/TAG NOP NOP NOP/
+	silent! %s/#4/TAG NOP NOP NOP/g
 
 	" 4-byte untagged buffer
-	silent! %s/#_4/NOP NOP NOP NOP/
+	silent! %s/#_4/NOP NOP NOP NOP/g
 
 	" actual forth stuff
 

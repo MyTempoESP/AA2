@@ -9,10 +9,7 @@
 \  ( a b c )
 
 \ Tagged addresses are denoted by [ADDR_NAME]
-\ the word for them is TAG, which puts the
-\ address inside the function in the ~~return~~ normal stack.
-
-\ Values greater than $7F have to be 'encoded' using the 16-bit-encode word
+\ the word for them is TAG, which puts the address inside the function in the ~~return~~ normal stack. Values greater than $7F have to be 'encoded' using the 16-bit-encode word
 
 \ type BigNumber -> 32-bit, format: $BF(8-bit) prefixed 16-bit value + 8-bit magnitude
 \                   like: 0xBF[vvvv][mm], example: 0xBF004103 [65K]
@@ -70,12 +67,44 @@
 \ ======================
 
 501 VALUE VERSION
-16  VALUE DATA-SIZE
 
 \ The screen
 
 : Dis			( -- ; Screen buffer )
-	#_4 #_4 #_4 #_3 TAG	( COMPILE TIME: data-end-addr ; 16 byte data buffer ) 
+ 
+	\ Memory layout:
+	\       080: 3820       :
+
+        \       082: bbbbbbbb   DATA Row 1
+        \       086: bbbbbbbb   DATA Row 2
+        \       08A: bbbbbbbb   DATA Row 3
+        \       08E: bbbbbbbb   DATA Row 4
+
+        \       092:   00       First label ( Portal myXXX )
+        \       093: c005
+        \       095: c079
+        \       097: c01d
+        \       099: c00d
+        \       
+        \       09B: bcbb       Code-1 - Call slot 1
+        \       09D: bbbb       Code-1 - Call slot 2
+        \       09F: c00d       Code-1 - Forward (END)
+        \       
+        \       0A1: bcbb       Code-2 - Call slot 1
+        \       0A3: bbbb       Code-2 - Call slot 2
+        \       0A5: c00d       Code-2 - Forward (END)
+        \
+        \       0A7:   03       Last label ( Comunicando WEB )
+        \       0A8: c005
+        \       0AA: bb00
+        \       0AC: c025
+        \       0AE: c00d
+        
+	\       0B0: 00b4       Draw()
+        \       0B2:   80       ;
+         
+
+	#_4 #_4 #_4 #_4		( COMPILE TIME: data-end-addr ; 16 byte data buffer ) 
 
 	0       Label		( label-id ; Main label, shows device name )
 	VERSION Number		( device-version )
@@ -93,7 +122,6 @@
 
 VALUE 2-CODE     ( data-end-addr tagged-addr tagged-addr-2 ; Address of the second screen code buffer )
 VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the first screen code buffer )
-VALUE DATA-END	 ( data-end-addr                           ; end of data marker )
 
 ' Dis VALUE DATA ( ; Address of beginning of screen data buffer )
 
@@ -127,24 +155,19 @@ VALUE DATA-END	 ( data-end-addr                           ; end of data marker )
 
 \ Aligned writes
 
-: get-data-index	( idx align -- DATA-addr ; get the correct address of index in DATA, since we pull data from it backwards )
-	*  NEG			( idx align      ; multiply size and index, then negate the offset to invert it )
-	DATA-END +		( reverse-offset ; get the address )
-;
- 
 : aligned-data!		( value idx align -- ; n-byte aligned 16-bit write to DATA buffer )
-	get-data-index		( value idx align )
+	DATA calc-align		( value idx align )
 	16-bit-encode!		( value iaddr     ; encodes value to specified DATA buffer index )
 ;
 
 : aligned-data-C!	( value idx align -- ; n-byte aligned 8-bit write to DATA buffer )
-	get-data-index          ( value idx align ) 
+	DATA calc-align         ( value idx align ) 
 	            C!		( value iaddr     ; encodes value to specified DATA buffer index )
 ;
 
 : data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
 	4			( value idx align ; this one has fixed alignment because 4 is the max size )
-	get-data-index          ( value idx align ) 
+	DATA calc-align         ( value idx align ) 
 	            F!		( value iaddr     ; writes a BigNumber to the specified DATA index )
 ;
 
@@ -180,10 +203,10 @@ VALUE DATA-END	 ( data-end-addr                           ; end of data marker )
 \ Screen-specific words
 
 : Antenna!   		( m1 v1 m2 v2 m3 v3 m4 v4 -- ; magnitude and value for each antenna )
-	1 data-Big!		( m1 v1 m2 v2 m3 v3 m4 v4 idx )
-	2 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
-	3 data-Big!		( m1 v1 m2 v2             idx )
-	4 data-Big!		( m1 v1                   idx )
+	0 data-Big!		( m1 v1 m2 v2 m3 v3 m4 v4 idx )
+	1 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
+	2 data-Big!		( m1 v1 m2 v2             idx )
+	3 data-Big!		( m1 v1                   idx )
 ;
 
 \ LABELS:
@@ -326,25 +349,50 @@ VARIABLE confirm-state
 
 \ Screen functions
 
+( ADDR IDX N-CODE call-idx! )
 : program-calls!	( addr-W1 addr-W2 n-CODE -- ; programs the passed words into the specified CODE section )
-	DUP R> R>		( addr-W1 addr-W2 n-CODE -- addr-W1 addr-W2 ; puts n-CODE in the return stack for 2 uses )
-	1      >R call-idx!	( addr-W1 addr-W2 ; programs W2 to n-CODE index 1 )
-	0   >R    call-idx!	( addr-W1         ; programs W1 to n-CODE index 0 )
+	DUP >R >R		( addr-W1 addr-W2 n-CODE -- addr-W1 addr-W2 ; puts n-CODE in the return stack for 2 uses )
+	1      R> call-idx!	( addr-W1 addr-W2 ; programs W2 to n-CODE index 1 )
+	0   R>    call-idx!	( addr-W1         ; programs W1 to n-CODE index 0 )
 ;
 
-: S_1* ( ; extern, Tags+Unicas )
+: S-1* ( ; extern, Tags+Unicas )
 
-	$02 1 4 aligned-data-C!	( label-id index alignment )
-	$22 2   data-Big!	( number   index           ; automatic alignment )
+	\ Data for 1-CODE
+	\ we reserve the two LAST rows for that data.
 
-	addr-Label addr-Number
-	1-CODE program-calls!
+	( LABEL: REGIST. )
+	( value ) $02
+	( index )  12
+	( align )   1
+	aligned-data-C!
 
-	$02 3 1 aligned-data-C!
-	$22 4 1 aligned-data-Big!
+	( LITERAL: 15K )
+	( value ) $03 $0F
+	( index )       2
+	( align )     ( 4 )
+	data-Big!
 
-	addr-Label addr-Number
-	2-CODE program-calls!
+	\ Data for 2-CODE
+	\ we reserve the two FIRST rows for that data
+
+	( LABEL: ATLETAS )
+	( value ) $01
+	( index )   4
+	( align )   1
+	aligned-data-C!
+
+	( LITERAL: 22K )
+	( value ) $03 $16
+	( index )       0
+	( align )     ( 4 )
+	data-Big!
+
+	addr-Label
+	addr-BigNum 1-CODE program-calls!
+
+	addr-Label
+	addr-BigNum 2-CODE program-calls!
 ;
 
 \ ======================
