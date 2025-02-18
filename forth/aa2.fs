@@ -209,66 +209,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	3 data-Big!		( m1 v1                   idx )
 ;
 
-\ LABELS:
-\ 0   PORTAL   My
-\ 1   ATLETAS
-\ 2   REGIST.
-\ 3   COMUNICANDO
-\ 4   LEITOR
-\ 5   LTE/4G:
-\ 6   WIFI:
-\ 7   IP:
-\ 8   LOCAL:
-\ 9   PROVA:
-\ 10  PING:
-\ 11  HORA:
-\ 12  USB:
-\ 13  AGUARDE...
-\ 14  ERRO TENTAR,
-\ 15    NOVAMENTE
-\
-\ 16  RFID  -
-\ 17  SERIE:
-\ 18  SIST.
-\
-\ 19  PRESSIONE,
-\ 20  PARA CONFIRMAR
-\
-\ 21  OFFLINE
-\ 22  DATA:
-\
-\ VALUES:
-\ 0   WEB
-\ 1   CONECTAD
-\ 2   DESLIGAD
-\ 3   AUTOMATIC
-\ 4   OK
-\ 5   X
-\ 6   A
-\ 7   COLON
-
-\ Examples:
-\	Antenna:
-
-\         3 50 1 500 1 650 3 5 Antenna!
-\         ' antenna 1-CODE call!
-
-\	Tags+Unicas:
-
-\ 	  $22 12 1 aligned-data-C!
-\ 	  $02 13 1 aligned-data-C!
-\ 	  ' Label 0 2-CODE call-idx! ' Number 1 2-CODE call-idx!
-\
-\ 	  $22 14 1 aligned-data-C!
-\ 	  $01 15 1 aligned-data-C!
-\ 	  ' Label 0 1-CODE call-idx! ' Number 1 1-CODE call-idx!
-
-\	Or in shorthand form:
-
-\	  $22 14 1 adC $01 15 1 adC Lbl 0 1-C ci! Num 1 1-C ci!
-
-\ ======================
-
 \ User interaction-related words and state
 
 VARIABLE action
@@ -356,13 +296,83 @@ VARIABLE confirm-state
 	0   R>    call-idx!	( addr-W1         ; programs W1 to n-CODE index 0 )
 ;
 
-: S-1* ( ; extern, Tags+Unicas )
+\ Fixed screen graphic codes:
+\
+\ 			     LABELS                  VALUES
+\                         _____________          _____________
+\ 			$00  PORTAL   My       $00   WEB        
+\ 			$01  ATLETAS           $01   CONECTAD   
+\ 			$02  REGIST.           $02   DESLIGAD   
+\ 			$03  COMUNICANDO       $03   AUTOMATIC  
+\ 			$04  LEITOR            $04   OK         
+\ 			$05  LTE/4G:           $05   X          
+\ 			$06  WIFI:             $06   A          
+\ 			$07  IP:               $07   COLON      
+\ 			$08  LOCAL:
+\ 			$09  PROVA:
+\ 			$0A  PING:
+\ 			$0B  HORA:
+\ 			$0C  USB:
+\ 			$0D  AGUARDE...
+\ 			$0E  ERRO TENTAR,
+\ 			$0F    NOVAMENTE
+\
+\ 			$10  RFID  -
+\ 			$11  SERIE:
+\ 			$12  SIST.
+\
+\ 			$13  PRESSIONE,
+\ 			$14  PARA CONFIRMAR
+\
+\ 			$15  OFFLINE
+\ 			$16  DATA:
+ 
+: S-1* ( -- ; extern, Tags+Unicas )
 
 	\ Data for 1-CODE
 	\ we reserve the two LAST rows for that data.
 
 	( LABEL: REGIST. )
 	( value ) $02
+	( index )  12
+	( align )   1
+	aligned-data-C!
+
+	( LITERAL: 15K )
+	( value ) $03 $0F
+	( index )       2
+	( align )     ( 4 )
+	data-Big!
+
+	\ Data for 2-CODE
+	\ we reserve the two FIRST rows for that data
+
+	( LABEL: ATLETAS )
+	( value ) $01
+	( index )   4
+	( align )   1
+	aligned-data-C!
+
+	( LITERAL: 22K )
+	( value ) $03 $16
+	( index )       0
+	( align )     ( 4 )
+	data-Big!
+
+	addr-Label
+	addr-BigNum 1-CODE program-calls!
+
+	addr-Label
+	addr-BigNum 2-CODE program-calls!
+;
+
+: S-2* ( ; extern, IP+State )
+
+	\ Data for 1-CODE
+	\ we reserve the two LAST rows for that data.
+
+	( LABEL: IP: )
+	( value ) $07
 	( index )  12
 	( align )   1
 	aligned-data-C!
