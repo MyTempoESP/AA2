@@ -25,7 +25,8 @@
 \ functions marked with an asterisk(*) need to be double checked for duplicate names, consider only the first 3 chars!!
 \ they are also EXTERNAL, DO NOT CALL THEM IN THIS SOURCE CODE!
 
-\ the words 'alignment' and other technical terms are severely misused in this source code, so refer to the following definitions:
+\ the words 'alignment' and other technical terms are, for historical reasons, severely misused
+\ in this source code, so refer to the following definitions:
 
 \	'alignment'/'align'/'aligned'	generally means something is offset according to a given byte size
 \					... e.g. BigNumbers are 4-byte values, therefore anything written after
@@ -57,7 +58,7 @@
 : Value    6   API ;
 : Ip       7   API ;
 : Ms       3   API ;
-: antenna
+: helper-Antenna
 	A 1 Number COLON BigNum SPACE
 	A 2 Number COLON BigNum Forward
 	A 3 Number COLON BigNum SPACE
@@ -73,35 +74,37 @@
 : Dis			( -- ; Screen buffer )
  
 	\ Memory layout:
-	\       080: 3820       :
 
-        \       082: bbbbbbbb   DATA Row 1
-        \       086: bbbbbbbb   DATA Row 2
-        \       08A: bbbbbbbb   DATA Row 3
-        \       08E: bbbbbbbb   DATA Row 4
+	\               080: 3820       :
 
-        \       092:   00       First label ( Portal myXXX )
-        \       093: c005
-        \       095: c079
-        \       097: c01d
-        \       099: c00d
+	\         REL   ADDR
+        \       DATA+00 082: bbbbbbbb   DATA Row 1
+        \       DATA+04 086: bbbbbbbb   DATA Row 2
+        \       DATA+08 08A: bbbbbbbb   DATA Row 3
+        \       DATA+0C 08E: bbbbbbbb   DATA Row 4
+
+        \               092:   00       First label ( Portal myXXX )
+        \               093: c005
+        \               095: c079
+        \               097: c01d
+        \               099: c00d
         \       
-        \       09B: bcbb       Code-1 - Call slot 1
-        \       09D: bbbb       Code-1 - Call slot 2
-        \       09F: c00d       Code-1 - Forward (END)
+        \       COD1+00 09B: bcbb       Code-1 - Call slot 1
+        \       COD1+02 09D: bbbb       Code-1 - Call slot 2
+        \       COD1+04 09F: c00d       Code-1 - Forward (END)
         \       
-        \       0A1: bcbb       Code-2 - Call slot 1
-        \       0A3: bbbb       Code-2 - Call slot 2
-        \       0A5: c00d       Code-2 - Forward (END)
+        \       COD2+00 0A1: bcbb       Code-2 - Call slot 1
+        \       COD2+02 0A3: bbbb       Code-2 - Call slot 2
+        \       COD2+04 0A5: c00d       Code-2 - Forward (END)
         \
-        \       0A7:   03       Last label ( Comunicando WEB )
-        \       0A8: c005
-        \       0AA: bb00
-        \       0AC: c025
-        \       0AE: c00d
+        \               0A7:   03       Last label ( Comunicando WEB )
+        \               0A8: c005
+        \               0AA: bb00
+        \               0AC: c025
+        \               0AE: c00d
         
-	\       0B0: 00b4       Draw()
-        \       0B2:   80       ;
+	\		0B0: 00b4       Draw()
+        \       	0B2:   80       ;
          
 
 	#_4 #_4 #_4 #_4		( COMPILE TIME: data-end-addr ; 16 byte data buffer ) 
@@ -155,14 +158,11 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ Aligned writes
 
-: aligned-data!		( value idx align -- ; n-byte aligned 16-bit write to DATA buffer )
-	DATA calc-align		( value idx align )
-	16-bit-encode!		( value iaddr     ; encodes value to specified DATA buffer index )
+: data!			( value idx -- ; n-byte aligned 16-bit write to DATA buffer )
+	DATA + 16-bit-encode!
 ;
-
-: aligned-data-C!	( value idx align -- ; n-byte aligned 8-bit write to DATA buffer )
-	DATA calc-align         ( value idx align ) 
-	            C!		( value iaddr     ; encodes value to specified DATA buffer index )
+: data-C!		( value idx -- ; n-byte aligned 8-bit write to DATA buffer )
+	DATA + C!
 ;
 
 : data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
@@ -200,92 +200,16 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ ======================
 
-\ Screen-specific words
-
-: Antenna!   		( m1 v1 m2 v2 m3 v3 m4 v4 -- ; magnitude and value for each antenna )
-	0 data-Big!		( m1 v1 m2 v2 m3 v3 m4 v4 idx )
-	1 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
-	2 data-Big!		( m1 v1 m2 v2             idx )
-	3 data-Big!		( m1 v1                   idx )
-;
-
-\ User interaction-related words and state
-
-VARIABLE action
-
-VARIABLE current-screen
-1 current-screen !
-
-VARIABLE arrow-state
-VARIABLE confirm-state
-
-7 VALUE arrow-pin
-6 VALUE confirm-pin
-
-: arrow-pressed?
-	arrow-pin IN 0 =
-;
-
-: confirm-pressed?
-	confirm-pin IN 0 =
-;
-
-: next-screen
-	current-screen @ ( ; fetch current screen )
-	1 + 7 MOD	 ( current-screen +1 mod-7 )
-	current-screen ! ( current-screen' )
-;
-
-\ NOTE: both DUP >R and *Addr* DUP @ >R have no practical effect on the main stack, chill.
-
-: update-state		( button-pressed? state-addr -- new-state old-state )
-	DUP @ >R		( button-pressed? state-addr ; )
-	DUP   >R		( button-pressed? state-addr ; )
-	!
-
-	R>			( ; )
-	R>			( new-state ; )
-;
-
-: update-arrow-state
-	arrow-pressed? arrow-state
-	update-state
-;
-
-: update-confirm-state
-	confirm-pressed? confirm-state
-	update-state
-;
-
-: clicked?	( new-state old-state -- clicked? ; checks if the button has just been clicked )
-	NOT		( new-state old-state -- new-state ~old-state )
-	AND		( new-state ~old-state )
-;
-
-: do-button		( -- )
-	update-arrow-state
-	clicked? IF
-		next-screen
-	THEN
-
-	update-confirm-state
-	clicked? IF
-		-1 action !
-	THEN
-;
-
-\ ======================
-
 \ Screen function addresses
 
-' Label   VALUE addr-Label
-' Forward VALUE addr-Forward
-' BigNum  VALUE addr-BigNum
-' Number  VALUE addr-Number
-' Value   VALUE addr-Value
-' Ip      VALUE addr-Ip
-' Ms      VALUE addr-Ms
-' antenna VALUE addr-antenna
+' Label          VALUE addr-Label
+' Forward        VALUE addr-Forward
+' BigNum         VALUE addr-BigNum
+' Number         VALUE addr-Number
+' Value          VALUE addr-Value
+' Ip             VALUE addr-Ip
+' Ms             VALUE addr-Ms
+' helper-Antenna VALUE addr-Antenna  
 
 \ Screen functions
 
@@ -298,16 +222,16 @@ VARIABLE confirm-state
 
 \ Fixed screen graphic codes:
 \
-\ 			     LABELS                  VALUES
+\ 			     LABELS                 VALUES
 \                         _____________          _____________
-\ 			$00  PORTAL   My       $00   WEB        
-\ 			$01  ATLETAS           $01   CONECTAD   
-\ 			$02  REGIST.           $02   DESLIGAD   
-\ 			$03  COMUNICANDO       $03   AUTOMATIC  
-\ 			$04  LEITOR            $04   OK         
-\ 			$05  LTE/4G:           $05   X          
-\ 			$06  WIFI:             $06   A          
-\ 			$07  IP:               $07   COLON      
+\ 			$00  PORTAL   My       $00  WEB        
+\ 			$01  ATLETAS           $01  CONECTAD   
+\ 			$02  REGIST.           $02  DESLIGAD   
+\ 			$03  COMUNICANDO       $03  AUTOMATIC  
+\ 			$04  LEITOR            $04  OK         
+\ 			$05  LTE/4G:           $05  X          
+\ 			$06  WIFI:             $06  A          
+\ 			$07  IP:               $07  COLON      
 \ 			$08  LOCAL:
 \ 			$09  PROVA:
 \ 			$0A  PING:
@@ -327,20 +251,69 @@ VARIABLE confirm-state
 \ 			$15  OFFLINE
 \ 			$16  DATA:
  
-: S-1* ( -- ; extern, Tags+Unicas )
+: clean!
+	\ DATA:
+	\         REL   ADDR
+        \       DATA+00 082: bbbbbbbb   DATA Row 1
+        \       DATA+04 086: bbbbbbbb   DATA Row 2
+        \       DATA+08 08A: bbbbbbbb   DATA Row 3
+        \       DATA+0C 08E: bbbbbbbb   DATA Row 4
+
+	\	16:22:21.120 -> 080: 3820bbbb bbbbbbbb bbbbbbbb bbbbbbbb  8 ;;;;;;;;;;;;;;
+	\ 	16:22:21.153 -> 090: bbbb00c0 05c079c0 1dc00dc0 05c02dc0  ;;_@_@y@_@_@_@-@
+	\ 	16:22:21.153 -> 0a0: 0dc005c0 25c00d03 c005bb00 c025c00d  _@_@%@__@_;_@%@_
+	\ 	16:22:21.153 -> 0b0: 00b48000 7d763333 bf00a180 00b37633  _4__}v33?_!__3v3
+
+	$bbbb DATA      !
+	$bbbb DATA $2 + !
+	$bbbb DATA $4 + !
+	$bbbb DATA $6 + !
+	$bbbb DATA $8 + !
+	$bbbb DATA $C + !
+	$bbbb DATA $A + !
+	$bbbb DATA $E + !
+;
+
+: code-clean!
+	$bbbb 1-CODE      !
+	$bbbb 1-CODE $2 + !
+
+	$bbbb 2-CODE      !
+	$bbbb 2-CODE $2 + !
+;
+
+: S-1* ( m2 vvv2 m1 vvv1 -- ; extern, Tags+Unicas )
+
+	clean!
+
+	\ _ -> bb ( NOP )
+
+	\ Memory layout:
+
+	\ DATA:
+	\         REL   ADDR
+        \       DATA+00 082: bfvvv2m2   DATA Row 1
+        \       DATA+04 086: 01______   DATA Row 2
+        \       DATA+08 08A: bfvvv1m1   DATA Row 3
+        \       DATA+0C 08E: 02______   DATA Row 4
+
+	\ DMP should look something like this ( let m2 = 3, m2 = 10, m1 = 3, and m1 = 10 )
+	\	15:40:40.516 -> 080: 3820bf00 0a0301bb bbbbbf00 0a0302bb  8 ?____;;;?____;
+	\ 	15:40:40.516 -> 090: bbbb00c0 05c079c0 1dc00dc0 05c015c0  ;;_@_@y@_@_@_@_@
+	\ 	15:40:40.516 -> 0a0: 0dc005c0 15c00d03 c005bb00 c025c00d  _@_@_@__@_;_@%@_
+	\	15:40:40.516 -> 0b0: 00b480
 
 	\ Data for 1-CODE
 	\ we reserve the two LAST rows for that data.
 
 	( LABEL: REGIST. )
 	( value ) $02
-	( index )  12
-	( align )   1
-	aligned-data-C!
+	( index ) $0C
+	data-C!
 
-	( LITERAL: 15K )
-	( value ) $03 $0F
-	( index )       2
+	( LITERAL: Tags[bfvvv1m1] )
+	( value ) ( m2 vvv2 m1 vvv1 )
+	( index )      $02
 	( align )     ( 4 )
 	data-Big!
 
@@ -349,13 +322,12 @@ VARIABLE confirm-state
 
 	( LABEL: ATLETAS )
 	( value ) $01
-	( index )   4
-	( align )   1
-	aligned-data-C!
+	( index ) $04
+	data-C!
 
-	( LITERAL: 22K )
-	( value ) $03 $16
-	( index )       0
+	( LITERAL: Atletas[bfvvv2m2] )
+	( value ) ( m2 vvv2 )
+	( index )      $00
 	( align )     ( 4 )
 	data-Big!
 
@@ -366,40 +338,269 @@ VARIABLE confirm-state
 	addr-BigNum 2-CODE program-calls!
 ;
 
-: S-2* ( ; extern, IP+State )
+: S-2* ( st o1 o2 o3 o4 -- ; extern, IP+State )
+
+	clean!
+	 
+	\ st        -> state
+	\ o1 ... o4 -> octets
+	\ _         -> bb ( NOP )
+
+	\ Memory layout:
+
+	\ DATA:
+	\         REL   ADDR
+        \       DATA+00 082: st04____   DATA Row 1
+        \       DATA+04 086: ________   DATA Row 2
+        \       DATA+08 08A: o1o2o3o4   DATA Row 3
+        \       DATA+0C 08E: 07______   DATA Row 4
 
 	\ Data for 1-CODE
 	\ we reserve the two LAST rows for that data.
 
 	( LABEL: IP: )
-	( value ) $07
-	( index )  12
-	( align )   1
-	aligned-data-C!
+	( value )  $07
+	( index )  $0C
+	data-C!
 
-	( LITERAL: 15K )
-	( value ) $03 $0F
-	( index )       2
-	( align )     ( 4 )
-	data-Big!
+	( value ) ( st o1 o2 o3 o4 )
+	( index )  $0B
+	data-C!
+	( value ) ( st o1 o2 o3 )
+	( index )  $0A
+	data-C!
+	( value ) ( st o1 o2 )
+	( index )  $09
+	data-C!
+	( value ) ( st o1 )
+	( index )  $08
+	data-C!
 
 	\ Data for 2-CODE
 	\ we reserve the two FIRST rows for that data
 
-	( LABEL: ATLETAS )
-	( value ) $01
-	( index )   4
-	( align )   1
-	aligned-data-C!
-
-	( LITERAL: 22K )
-	( value ) $03 $16
-	( index )       0
-	( align )     ( 4 )
-	data-Big!
+	( LABEL: LEITOR )
+	( value ) $04
+	( index ) $01
+	data-C!
+	
+	( value ) ( st )
+	( index )  $00
+	data-C!
 
 	addr-Label
-	addr-BigNum 1-CODE program-calls!
+	addr-Ip 1-CODE program-calls!
+
+	addr-Label
+	addr-Value 2-CODE program-calls!
+;
+
+: S-3* ( ping state lte-or-wifi[$05/$06] -- ; extern, Wifi/Lte )
+
+	clean!
+	 
+	\ st        -> state
+	\ pvvv      -> ping-v
+	\ _         -> bb ( NOP )
+
+	\ Memory layout:
+
+	\ DATA:
+	\         REL   ADDR
+        \       DATA+00 082: bfpvvv__   DATA Row 1
+        \       DATA+04 086: 0A______   DATA Row 2
+        \       DATA+08 08A: st______   DATA Row 3
+        \       DATA+0C 08E: 06______   DATA Row 4
+
+	\ let ping = 0x1f4, state = 0x01
+	\	16:43:33.717 -> 080: 3820bf01 f4bb0abb bbbb01bb bbbb06bb  8 ?_t;_;;;_;;;_;
+	\	16:43:33.717 -> 090: bbbb00c0 05c079c0 1dc00dc0 05c025c0  ;;_@_@y@_@_@_@%@
+	\	16:43:33.717 -> 0a0: 0dc005c0 35c00d03 c005bb00 c025c00d  _@_@5@__@_;_@%@_
+	\	16:43:33.717 -> 0b0: 00b48000 7d763334 bf00a180 00b37633  _4__}v34?_!__3v3
+
+	\ Data for 1-CODE
+	\ we reserve the two LAST rows for that data.
+
+	( LABEL: WIFI: or LTE/4G: )
+	( value )  ( lte-or-wifi )
+	( index )  $0C
+	data-C!
+
+	( value ) ( wifi-state )
+	( index )  $08
+	data-C!
+
+	\ Data for 2-CODE
+	\ we reserve the two FIRST rows for that data
+
+	( LABEL: PING: )
+	( value ) $0A
+	( index ) $04
+	data-C!
+	
+	( value ) ( ping )
+	( index )  $00
+	data!
+
+	addr-Label
+	addr-Value 1-CODE program-calls!
+
+	addr-Label
+	addr-Ms 2-CODE program-calls!
+;
+
+: S-4* ( m1 v1 m2 v2 m3 v3 m4 v4 -- ; extern, Antennas )
+
+	\ clean!		( we do   use all slots )
+	code-clean!		( we dont use all slots )
+	 
+	\ _         -> bb ( NOP )
+
+	\ Memory layout:
+
+	\ DATA:
+	\         REL   ADDR
+        \       DATA+00 082: bfvvv1m1   DATA Row 1
+        \       DATA+04 086: bfvvv2m2   DATA Row 2
+        \       DATA+08 08A: bfvvv3m3   DATA Row 3
+        \       DATA+0C 08E: bfvvv4m4   DATA Row 4
+
+	0 data-Big!		( m1 v1 m2 v2 m3 v3 m4 v4 idx )
+	1 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
+	2 data-Big!		( m1 v1 m2 v2             idx )
+	3 data-Big!		( m1 v1                   idx )
+
+	addr-Antenna 0 1-CODE call-idx!
+;
+
+: S-5*	( hour min sec day mon year -- ; extern, DateTime, this one is a mess )
+ 	\ DATA:
+
+	\ * capitalized hexadecimal values for clarity
+
+	\         REL   ADDR
+        \       DATA+00 082: ddmmBFyy   DATA Row 1
+        \       DATA+04 086: yyBFDA7E   DATA Row 2
+        \       DATA+08 08A: 16hhmmss   DATA Row 3
+        \       DATA+0C 08E: BF00FF0B   DATA Row 4
+
+	\ clean!		( ; we use all data slots )
+
+	( LABEL: DATA: )
+	( value ) $16
+	( index ) $08
+	data-C!
+
+	( value ) ( year )
+	( index )  $02
+	data!
+
+	( value ) ( mon )
+	( index )  $01
+	data-C!
+
+	( value ) ( day )
+	( index )  $00
+	data-C!
+
+	( value ) $DA7E
+	( index )   $05
+	data!
+
+	( LABEL: HORA: )
+	( value )  $0B
+	( index )  $0F
+	data-C!
+
+	( value ) $100
+	( index )  $0C
+	data!
+
+	( value ) ( sec )
+	( index )  $0B
+	data-C!
+
+	( value ) ( min )
+	( index )  $0A
+	data-C!
+
+	( value ) ( hour )
+	( index )  $09
+	data-C!
+
+	addr-Label
+	addr-Ip 1-CODE program-calls!
+
+	addr-Label
+	addr-Ip 2-CODE program-calls!
+;
+
+: S-6*	( state ; extern, USB )
+  	\ DATA:
+
+	\         REL   ADDR
+        \       DATA+00 082: st______   DATA Row 1
+        \       DATA+04 086: 0c______   DATA Row 2
+        \       DATA+08 08A: ________   DATA Row 3
+        \       DATA+0C 08E: ________   DATA Row 4
+
+	clean!
+	code-clean!		( ; we do not use all call slots )
+
+	( LABEL: USB: )
+	( value ) $0C
+	( index ) $04
+	data-C!
+
+	( value ) ( state )
+	( index )  $00
+	data-C!
+
+	addr-Label
+	addr-Value 1-CODE program-calls!
+;
+
+: S-7*	( version-hash ; extern, System info )
+  	\ DATA:
+
+	\         REL   ADDR
+        \       DATA+00 082: BFrfid__   DATA Row 1
+        \       DATA+04 086: 1010____   DATA Row 2
+        \       DATA+08 08A: BFhash__   DATA Row 3
+        \       DATA+0C 08E: 1012____   DATA Row 4
+
+	clean!
+
+	( LABEL: RFID - )
+	( value ) $10
+	( index ) $05
+	data-C!
+
+	\ Hexadecimal prefix
+	( value ) $10
+	( index ) $04
+	data-C!
+
+	( value ) $CA00 VERSION 1 RSHIFT OR
+	( index ) $00
+	data!
+
+	( LABEL: SIST. )
+	( value ) $12
+	( index ) $0D
+	data-C!
+
+	\ Hexadecimal prefix
+	( value ) $10
+	( index ) $0C
+	data-C!
+
+	( value ) ( version-hash )
+	( index ) $08
+	data!
+
+	addr-Label
+	addr-BigNum 1-CODE program-calls!       
 
 	addr-Label
 	addr-BigNum 2-CODE program-calls!

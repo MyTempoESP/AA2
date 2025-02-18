@@ -9,7 +9,7 @@
 ///
 ///@name Default Heap sizing
 ///@{
-constexpr U16 N4_DIC_SZ = 0x400; /**< default dictionary size             */
+constexpr U16 N4_DIC_SZ = 0x1500; /**< default dictionary size             */
 constexpr U16 N4_STK_SZ = 0x80;  /**< default parameter/return stack size */
 constexpr U16 N4_TIB_SZ = 0x80;  /**< terminal input buffer size          */
 ///@}

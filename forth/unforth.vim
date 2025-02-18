@@ -132,9 +132,9 @@ func! Unforth(outfile) abort
 	cal AbbrevPrimitives()
 
  	" Text Decorations
-	silent! %s/\<A\>/ 7 6 API /g
-	silent! %s/\<SPACE\>/ 6 6 API /g
-	silent! %s/\<COLON\>/ 8 6 API /g  
+	silent! exe '%s/' . MakeBoundedPattern('A')     . '/ 7 6 API /g'
+	silent! exe '%s/' . MakeBoundedPattern('SPACE') . '/ 6 6 API /g'
+	silent! exe '%s/' . MakeBoundedPattern('COLON') . '/ 8 6 API /g'
 
 	" 'g;^\s*[^/];...': execute ... in uncommented lines
 
