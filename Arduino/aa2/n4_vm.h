@@ -12,6 +12,7 @@
 namespace N4VM
 {
 	// interface
+  unsigned int get16(int addr);
 	void push(int v);
 	int  pop();
     // nanoForth Virtual Machine constructor

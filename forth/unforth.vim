@@ -21,8 +21,11 @@ func! AbbrevPrimitives()
 	silent! %s/WHILE/WHL/g
 	silent! %s/ALLOT/ALO/g
 	silent! %s/VARIABLE/VAR/g
-	silent! %s/SWAP/SWP/g    
-	silent! %s/OVER/OVR/g    
+	silent! %s/SWAP/SWP/g
+	silent! %s/OVER/OVR/g
+	silent! %s/PICK/PCK/g
+	silent! %s/DROP/DRP/g
+	silent! %s/EXIT/RET/g
 endf
 
 func! MakeBoundedPattern(pat)
@@ -92,6 +95,9 @@ func! Unforth(outfile) abort
 	normal! ggo
 
 	" My shorthands:
+
+	" 2-byte tagged buffer
+	silent! %s/#2/TAG NOP/g
 
 	" 3-byte tagged buffer
 	silent! %s/#3/TAG NOP NOP/g

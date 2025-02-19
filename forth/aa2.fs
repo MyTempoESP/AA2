@@ -14,6 +14,7 @@
 \ type BigNumber -> 32-bit, format: $BF(8-bit) prefixed 16-bit value + 8-bit magnitude
 \                   like: 0xBF[vvvv][mm], example: 0xBF004103 [65K]
 
+\ #2  -> TAG NOP        , 2-byte tagged   buffer, this is usually a placeholder for a single call;
 \ #3  -> TAG NOP NOP    , 3-byte tagged   buffer, this is usually a placeholder for a CALL instruction;
 \ #4  -> TAG NOP NOP NOP, 4-byte tagged   buffer, this is usually a placeholder for code, allowing 2 calls;
 \ #_3 -> NOP NOP NOP    , 3-byte tagged   buffer.
@@ -612,7 +613,7 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ TODO redesign waiting, should it be here or in the pc?
 
-: S-8*	( ; extern, Confirmation screen )
+: S-8*  ( ; extern, Confirmation screen )
 
 	0   TME
 	100 DLY
@@ -624,7 +625,7 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	\ TODO wait for input
 ;
 
-: S-9*	( ; extern, Error screen )
+: S-9*  ( ; extern, Error screen )
 
 	0   TME
 	100 DLY
@@ -640,11 +641,52 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ ======================
 
+\ User input: ( 💀 )
+
+VARIABLE ok-down
+VARIABLE arrow-down
+VARIABLE Action
+
+0 Action !
+0 ok-down !
+0 arrow-down !
+
+: confirm
+	$00 Action !
+;
+' confirm VALUE addr-Confirm 
+
+: switch-screen
+	addr-Confirm C@ 1 + 7 MOD DUP	( current-screen +1 MOD7 )
+	addr-Confirm C!			( current-screen' current-screen' )
+
+	$F0 OR Action !			( switch-screen-mark current-screen' )
+;
+
+: do-button	( ; processes button input )
+	6 IN 0 = DUP    	(               ; detect arrow button )
+	7 IN 0 = DUP    	( arrow-down?x2 ; detect ok    button )
+
+	ok-down @ NOT AND	( arrow-down?x2 ok-down?x2 )
+	IF			( arrow-down?x2 ok-down? ok-pressed? )
+		confirm
+	THEN
+	ok-down !		( arrow-down?x2 ok-down? )
+
+	arrow-down @ NOT AND	( arrow-down?x2 )
+	IF			( arrow-down? arrow-pressed? )
+		switch-screen
+	THEN
+	arrow-down !		( arrow-down? )
+;
+
+\ ======================
+
 \ Initialization
 
-1500 DLY
-50 0 TMI Dis
-\ 10 1 TMI do-button
+500 DLY
+120 1 TMI Dis
+100 0 TMI do-button
 1 TME
 
 \ ======================

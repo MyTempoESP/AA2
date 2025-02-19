@@ -54,8 +54,9 @@ void NanoForth::wait(U32 ms)
 ///
 /// VM proxy functions
 ///
-void n4_push(int v) { N4VM::push(v);      }
-int  n4_pop()       { return N4VM::pop(); }
+void         n4_push (int v)    { N4VM::push(v);            }
+int          n4_pop  ()         { return N4VM::pop();       }
+unsigned int n4_get16(int addr) { return N4VM::get16(addr); }
 ///
 /// for Eclipse debugging
 ///

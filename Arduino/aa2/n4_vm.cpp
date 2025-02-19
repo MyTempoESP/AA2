@@ -230,7 +230,7 @@ void _invoke(U8 op) {
     _X(25, U8 *p = DIC(POP()); *p = (U8)POP());     // C!
     _X(26, PUSH((U16)key()));                       // KEY
     _X(27, d_chr((U8)POP()));                       // EMT
-    _X(28, d_chr('\n'));                            // CR
+    _X(28, PUSH(SS(POP())));                        // PCK
     _X(29, d_num(POP()); d_chr(' '));               // .
     _X(30, {});                                     // ."  handled one level up
     _X(31, RPUSH(POP()));                           // >R
@@ -358,7 +358,14 @@ void setup(const char *code, Stream &io, U8 ucase) {
 ///> VM proxy functions
 ///
 void push(int v) { *(--vm.sp) = (S16)(v); }
-int pop() { return (*vm.sp++); }
+int pop() {
+  if (vm.sp >= SP0) return 0;
+  return (*vm.sp++);
+}
+unsigned int get16(int addr) {
+  U8 *p = DIC(addr);
+  return GET16(p);
+}
 ///
 ///> virtual machine interrupt service routine
 ///
