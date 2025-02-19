@@ -610,32 +610,70 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	addr-BigNum 2-CODE program-calls!
 ;
 
-\ TODO redesign waiting, should it be here or in the pc?
+\ : combo	( ; FORWARD + Draw )
+\ 	Forward
+\ 	0 API
+\ ;
+\ ' combo VALUE addr-Combo
 
 : S-8*	( ; extern, Confirmation screen )
+	\ DATA:
+        \         REL   ADDR
+        \       DATA+00 082: 14130005   DATA Row 1
+        \       DATA+04 086: 0503BE02   DATA Row 2
+        \       DATA+08 08A: B4B4F089   DATA Row 3
+        \       DATA+0C 08E: 02B480__   DATA Row 4
 
-	0   TME
-	100 DLY
-		  Forward
-	$13 Label Forward
-	$14 Label Forward
-		  Forward
-	0 API
-	\ TODO wait for input
-;
+	\ this word programs the whole code into the DATA section
+	\ then programs a RET instruction, so we quit the function.
+	\ We took 'code as data' quite literally
 
-: S-9*	( ; extern, Error screen )
+	\	Example of a FOR loop:
+	\		000: 32 be	$32 FOR
+	\		002: 00 b4 f002 $00 API NXT (jmp $002)
 
-	0   TME
-	100 DLY
-		  Forward
-	$0E Label Forward
-	$0F Label Forward
-		  Forward
-	0 API
+	\	DATA+00	082: 14 13	L1 L2
+	\	DATA+02	084: 00 05	Label API codes
+	\	DATA+04	086: 05 03	Draw  API code   , FOR loop count
+	\	DATA+06	088: BE 02	FOR   instruction, Forward API code
+	\	DATA+08	08A: B4 B4	API opcode ( twice )
+	\	DATA+0A	08C: F0 89	NXT (jmp $088)
+	\	DATA+0C	08E: 02 B4	Forward API code + API opcode
+	\	DATA+0E	090: 80		__ RET
 
-	5000 DLY
-	1 TME
+	( LABEL: Confirm messages )
+	( value ) $1413
+	( index )   $00
+	data-raw!
+
+	( value ) $0005
+	( index )   $02
+	data-raw!
+
+	( value ) $0503
+	( index )   $04
+	data-raw!
+
+	( value ) $BE02
+	( index )   $06
+	data-raw!
+
+	( value ) $B4B4
+	( index )   $08
+	data-raw!
+
+	\ calculating FOR loop address +1 instruction
+	( value ) $F000 DATA $07 + OR
+	( index )   $0A
+	data-raw!
+
+	( value ) $02B4
+	( index )   $0C
+	data-raw!
+
+	( value )   $80
+	( index )   $0E
+	data-C!
 ;
 
 \ ======================

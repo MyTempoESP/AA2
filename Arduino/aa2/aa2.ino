@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "nanoFORTH.h"
-#include "forth2cstr.h" // compiled forth code
+#include "forth2cstr.h"
 
 #define LABEL_COUNT 23
 
@@ -123,6 +123,11 @@ print_forthNumber()
   mag = n4_pop();
   v = n4_pop();
 
+  if (mag == 16) { // (special case) hex
+	  g_x += virt_scr_sprintf("%04x", v);
+	  return;
+  }
+
   postfix = (mag == 0) ?
       ' ' :
       (mag >= 3 && mag < 6 ? 'K' : 'M');
@@ -156,6 +161,7 @@ forth_number()
 void
 forth_label()
 {
+  char* buf;
   int v;
 
   if ((v = n4_pop()) >= LABEL_COUNT || v < 0) return;
@@ -168,16 +174,18 @@ forth_label()
 void
 forth_line_feed()
 {
-  if (g_y >= VIRT_SCR_ROWS - 1) return;
 
   for (; g_x < VIRT_SCR_COLS - 1; g_x++)
     g_virt_scr[g_y][g_x] = ' ';
-
-  g_x++;
+  
   g_virt_scr[g_y][g_x] = '\0';
 
   g_x = 0;
+
   g_y++;
+
+  if (g_y >= (VIRT_SCR_ROWS - 1))
+    g_y = VIRT_SCR_ROWS - 1;
 }
 
 void
@@ -187,7 +195,7 @@ draw()
   g_y = 0;
   g_x = 0;
 
-  for (int i = 0; i < VIRT_SCR_ROWS; i++) {
+  for (int i = 0; i < VIRT_SCR_ROWS; i++){
 
     lcd.setCursor(0, i);
 
