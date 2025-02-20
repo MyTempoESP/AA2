@@ -621,22 +621,22 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	$13 Label Forward
 	$14 Label Forward
 		  Forward
-	0 API
+	0   API
 	\ TODO wait for input
 ;
 
 : S-9*  ( ; extern, Error screen )
 
-	0   TME
-	100 DLY
-		  Forward
-	$0E Label Forward
-	$0F Label Forward
-		  Forward
-	0 API
+	0    TME
+	100  DLY
+	           Forward
+	$0E  Label Forward
+	$0F  Label Forward
+	           Forward
+	0    API
 
 	5000 DLY
-	1 TME
+	1    TME
 ;
 
 \ ======================

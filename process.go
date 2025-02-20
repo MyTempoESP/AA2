@@ -106,7 +106,7 @@ func (a *Ay) Process() {
 					/* Tags    */ lcdlogger.ToForthNumber(tags.Load()),
 					/* Atletas */ lcdlogger.ToForthNumber(tagSet.Count()),
 				)
-			case lcdlogger.SCREEN_ADDR:
+			case lcdlogger.SCREEN_IP:
 
 				ok := flick.OK
 
@@ -124,16 +124,14 @@ func (a *Ay) Process() {
 			case lcdlogger.SCREEN_WIFI:
 
 				wifi := flick.DESLIGAD
-				lte := flick.DESLIGAD
 
 				display.ScreenWifi(
 					NUM_EQUIP,
 					commVerif,
 					/* WIFI */ wifi,
-					/* 4G   */ lte,
 					-1,
 				)
-			case lcdlogger.SCREEN_STAT:
+			case lcdlogger.SCREEN_ANTENNAS:
 				display.ScreenStat(
 					NUM_EQUIP,
 					commVerif,
@@ -167,11 +165,10 @@ func (a *Ay) Process() {
 					commVerif,
 					devVerif,
 				)
-			case lcdlogger.SCREEN_INFO_EQUIP:
+			case lcdlogger.SCREEN_SIST:
 				display.ScreenInfoEquip(NUM_EQUIP)
 			}
 
-			display.HandleActionButton()
 			display.SwitchScreens()
 
 			if action, hasAction := display.Action(); hasAction {
@@ -245,35 +242,24 @@ func (a *Ay) Process() {
 				}
 			}
 
-			display.HandleAltActionButton()
-			display.ProcessAltAction()
+			/*case lcdlogger.ALT_ACTION_RESTART:
+				err = RestartComputer()
 
-			if action, hasAction := display.AltAction(); hasAction {
-
-				display.ScreenProgress()
-
-				err = nil
-
-				switch action {
-				case lcdlogger.ALT_ACTION_RESTART:
-					err = RestartComputer()
-
-					if err == nil {
-						select {} // hang
-					}
-				}
-
-				<-time.After(1 * time.Second) // min 1 sec
-
-				if err != nil {
-
-					display.ScreenErr()
-
-					<-time.After(5 * time.Second)
-
-					continue
+				if err == nil {
+					select {} // hang
 				}
 			}
+
+			<-time.After(1 * time.Second) // min 1 sec
+
+			if err != nil {
+
+				display.ScreenErr()
+
+				<-time.After(5 * time.Second)
+
+				continue
+			}*/
 
 			time.Sleep(50 * time.Millisecond)
 		}

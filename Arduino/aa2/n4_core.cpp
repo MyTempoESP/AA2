@@ -249,29 +249,28 @@ U8 ok() {
     S16 *sp0 = (S16 *)_tib; /// * fetch top of heap
     S16 *rp1 = (S16 *)(vm.rp + 1);
     if (vm.sp <= rp1) { /// * check stack overflow
-      show("OVF!\n");
+      //show("OVF!\n");
       vm.sp = rp1; /// * stack max out
     }
 
     if (vm.sp > sp0) {
-
-      show("UDF!\n");
+      //show("UDF!\n");
       vm.sp = sp0;
     }
 
-#define DEBUG_NANO_FORTH
+//#define DEBUG_NANO_FORTH
 #ifdef DEBUG_NANO_FORTH
     show("Stack: ");
     d_num(vm.sp);
     d_chr('/');
     d_num(sp0 - 1);
     d_chr('\n');
-#endif
 
     for (S16 *p = sp0 - 1; p >= vm.sp; p--) { /// * dump stack content
       d_num(*p);
       d_chr('_');
     }
+#endif
 
     show("ok"); /// * user input prompt
   }

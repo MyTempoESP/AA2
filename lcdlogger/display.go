@@ -14,14 +14,7 @@ type SerialDisplay struct {
 	Forth *flick.MyTempo_Forth
 
 	Screen int
-
-	actionButtonLHTime time.Time // Last Held Timestamp
-	actionButtonHeld   bool
-	action             Action
-
-	altButtonLHTime time.Time
-	altButtonHeld   bool
-	altAction       Action
+	action Action
 }
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
@@ -42,7 +35,6 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 	display.Forth = &f
 
 	display.action = -1
-	display.altAction = -1
 
 	return
 }
@@ -51,6 +43,7 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
+	defer display.Forth.Send("0 v49 !")
 
 	for {
 		select {
@@ -68,7 +61,7 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 					continue
 				}
 
-				if res[0] == '-' {
+				if res[0] != '0' {
 
 					hasKey = true
 
@@ -83,33 +76,24 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	// TODO: onrelease actions
 
-	res, err := display.Forth.Send("bac @ .")
+	res, err := display.Forth.Send("v49 @ .")
 
 	if err != nil {
 
 		return
 	}
 
-	defer display.Forth.Send("0 bac !")
+	defer display.Forth.Send("0 v49 !")
 
-	if res[0] == '-' { // onrelease
+	if res[:2] == "24" {
+		log.Println("Switching screen: ")
 
-		log.Println("Released!")
+		display.Screen = int(res[3]) + int('0')
 
-		lht := display.actionButtonLHTime
+		return
+	} else {
+		log.Println("Pressed!")
 
-		if display.actionButtonHeld && time.Now().After(lht.Add(time.Millisecond*2300)) { // XXX: magic number
-
-			log.Println("+ Action!")
-
-			display.action = Action(display.Screen)
-
-		} else {
-			display.Screen++
-			display.Screen %= SCREEN_COUNT
-		}
-
-		display.actionButtonLHTime = time.Now().Add(time.Hour * 1)
-		display.actionButtonHeld = false // button released
+		display.action = Action(res[2])
 	}
 }
