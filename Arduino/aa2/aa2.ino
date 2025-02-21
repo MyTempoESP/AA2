@@ -60,6 +60,8 @@ char g_virt_scr[VIRT_SCR_ROWS][VIRT_SCR_COLS];
 
 #define virt_scr_sprintf(fmt, ...) \
   snprintf(g_virt_scr[g_y] + g_x, ((VIRT_SCR_COLS + 1) - g_x), fmt, __VA_ARGS__);
+#define virt_scr_sprint(s) \
+  snprintf(g_virt_scr[g_y] + g_x, ((VIRT_SCR_COLS + 1) - g_x), s);
 
 LiquidCrystal_I2C lcd(0x27, VIRT_SCR_COLS, VIRT_SCR_ROWS);
 
@@ -85,6 +87,7 @@ setup()
   n4_api(5, forth_label);
   n4_api(6, forth_value);
   n4_api(7, forth_ip);
+  n4_api(8, forth_antenna);
 
   pinMode(7, INPUT_PULLUP);
   pinMode(6, INPUT_PULLUP);
@@ -112,6 +115,23 @@ forth_value()
   if ((v = n4_pop()) > VALUE_COUNT || v < 0) return;
 
   g_x += virt_scr_sprintf("%s", values[v]);
+}
+
+void
+forth_antenna()
+{
+  g_x = 0;
+  g_x += virt_scr_sprint("A1: ");
+  print_forthNumber();
+  g_x += virt_scr_sprint("  A2: ");
+  print_forthNumber();
+
+  forth_line_feed();
+  
+  g_x += virt_scr_sprint("A3: ");
+  print_forthNumber();
+  g_x += virt_scr_sprint("  A4: ");
+  print_forthNumber();
 }
 
 void

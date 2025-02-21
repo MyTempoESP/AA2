@@ -93,83 +93,13 @@ func (a *Ay) Process() {
 	go func() {
 
 		const NUM_EQUIP = 501
+		const TIME_EACH_1 time.Duration = 50 * time.Millisecond
+		const TIME_EACH_2 time.Duration = 20 * time.Millisecond
 
 		for {
-
-			commVerif := flick.DESLIGAD
-
-			switch display.Screen {
-			case lcdlogger.SCREEN_TAGS:
-				display.ScreenTags(
-					NUM_EQUIP,
-					commVerif,
-					/* Tags    */ lcdlogger.ToForthNumber(tags.Load()),
-					/* Atletas */ lcdlogger.ToForthNumber(tagSet.Count()),
-				)
-			case lcdlogger.SCREEN_IP:
-
-				ok := flick.OK
-
-				if !readerState.Load() {
-
-					ok = flick.DESLIGAD
-				}
-
-				display.ScreenAddr(
-					NUM_EQUIP,
-					commVerif,
-					/* IP         */ readerOctets,
-					/* leitor OK? */ ok,
-				)
-			case lcdlogger.SCREEN_WIFI:
-
-				wifi := flick.DESLIGAD
-
-				display.ScreenWifi(
-					NUM_EQUIP,
-					commVerif,
-					/* WIFI */ wifi,
-					-1,
-				)
-			case lcdlogger.SCREEN_ANTENNAS:
-				display.ScreenStat(
-					NUM_EQUIP,
-					commVerif,
-					lcdlogger.ToForthNumber(antennas[0].Load()),
-					lcdlogger.ToForthNumber(antennas[1].Load()),
-					lcdlogger.ToForthNumber(antennas[2].Load()),
-					lcdlogger.ToForthNumber(antennas[3].Load()),
-				)
-			case lcdlogger.SCREEN_TIME:
-				display.ScreenTime(
-					NUM_EQUIP,
-					commVerif,
-				)
-			case lcdlogger.SCREEN_USB:
-				devCheck, err := device.Check()
-
-				if err != nil {
-
-					continue
-				}
-
-				devVerif := flick.X
-
-				if devCheck {
-
-					devVerif = flick.CONECTAD
-				}
-
-				display.ScreenUSB(
-					NUM_EQUIP,
-					commVerif,
-					devVerif,
-				)
-			case lcdlogger.SCREEN_SIST:
-				display.ScreenInfoEquip(NUM_EQUIP)
-			}
-
 			display.SwitchScreens()
+
+			time.Sleep(TIME_EACH_1)
 
 			if action, hasAction := display.Action(); hasAction {
 
@@ -242,6 +172,64 @@ func (a *Ay) Process() {
 				}
 			}
 
+			switch display.Screen {
+			case lcdlogger.SCREEN_TAGS:
+				display.ScreenTags(
+					/* Tags    */ lcdlogger.ToForthNumber(tags.Load()),
+					/* Atletas */ lcdlogger.ToForthNumber(tagSet.Count()),
+				)
+			case lcdlogger.SCREEN_IP:
+
+				ok := flick.OK
+
+				if !readerState.Load() {
+
+					ok = flick.DESLIGAD
+				}
+
+				display.ScreenAddr(
+					/* IP         */ readerOctets,
+					/* leitor OK? */ ok,
+				)
+			case lcdlogger.SCREEN_WIFI:
+
+				wifi := flick.DESLIGAD
+
+				display.ScreenWifi(
+					/* WIFI */ wifi,
+					-1,
+				)
+			case lcdlogger.SCREEN_ANTENNAS:
+				display.ScreenStat(
+					lcdlogger.ToForthNumber(antennas[0].Load()),
+					lcdlogger.ToForthNumber(antennas[1].Load()),
+					lcdlogger.ToForthNumber(antennas[2].Load()),
+					lcdlogger.ToForthNumber(antennas[3].Load()),
+				)
+			case lcdlogger.SCREEN_TIME:
+				display.ScreenTime()
+			case lcdlogger.SCREEN_USB:
+				devCheck, err := device.Check()
+
+				if err != nil {
+
+					continue
+				}
+
+				devVerif := flick.X
+
+				if devCheck {
+
+					devVerif = flick.CONECTAD
+				}
+
+				display.ScreenUSB(
+					devVerif,
+				)
+			case lcdlogger.SCREEN_SIST:
+				display.ScreenInfoEquip()
+			}
+
 			/*case lcdlogger.ALT_ACTION_RESTART:
 				err = RestartComputer()
 
@@ -261,7 +249,7 @@ func (a *Ay) Process() {
 				continue
 			}*/
 
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(TIME_EACH_2)
 		}
 	}()
 }

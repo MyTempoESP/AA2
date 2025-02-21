@@ -25,7 +25,7 @@ func (display *SerialDisplay) DrawScreen(code string) {
 	display.Forth.Send(code)
 }
 
-func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas ForthNumber) {
+func (display *SerialDisplay) ScreenTags(tags, tagsUnicas ForthNumber) {
 
 	display.DrawScreen(
 		fmt.Sprintf(
@@ -37,7 +37,7 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 	)
 }
 
-func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leitorOk int) {
+func (display *SerialDisplay) ScreenAddr(ip IPOctets, leitorOk int) {
 
 	log.Println(ip)
 
@@ -51,7 +51,7 @@ func (display *SerialDisplay) ScreenAddr(nome, commVerif int, ip IPOctets, leito
 	)
 }
 
-func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif int, wifiPing int64) {
+func (display *SerialDisplay) ScreenWifi(wifiVerif int, wifiPing int64) {
 
 	display.DrawScreen(
 		fmt.Sprintf(
@@ -63,7 +63,7 @@ func (display *SerialDisplay) ScreenWifi(nome, commVerif, wifiVerif int, wifiPin
 	)
 }
 
-func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 ForthNumber) {
+func (display *SerialDisplay) ScreenStat(a1, a2, a3, a4 ForthNumber) {
 
 	display.DrawScreen(
 		fmt.Sprintf(
@@ -72,15 +72,15 @@ func (display *SerialDisplay) ScreenStat(nome, commVerif int, a1, a2, a3, a4 For
 				" %d %d"+ // A2 Val+Mag
 				" %d %d S-4", // A1 Val+Mag then display
 
-			a4.Value, a4.Magnitude,
-			a3.Value, a3.Magnitude,
-			a2.Value, a2.Magnitude,
-			a1.Value, a1.Magnitude,
+			a4.Magnitude, a4.Value,
+			a3.Magnitude, a3.Value,
+			a2.Magnitude, a2.Value,
+			a1.Magnitude, a1.Value,
 		),
 	)
 }
 
-func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
+func (display *SerialDisplay) ScreenTime() {
 
 	now := time.Now().In(c.ProgramTimezone)
 	y, m, d := now.Date()
@@ -97,24 +97,23 @@ func (display *SerialDisplay) ScreenTime(nome, commVerif int) {
 	)
 }
 
-func (display *SerialDisplay) ScreenUSB(nome, commVerif int, devVerif int) {
+func (display *SerialDisplay) ScreenUSB(devVerif int) {
 
 	display.DrawScreen(
 		fmt.Sprintf(
 			"%d S-6",
-
 			devVerif,
 		),
 	)
 }
 
-func (display *SerialDisplay) ScreenInfoEquip(nome int) {
+func (display *SerialDisplay) ScreenInfoEquip() {
 
 	display.DrawScreen(
 		fmt.Sprintf(
-			"$%s $%s S-7",
+			"$%s S-7",
 
-			c.Reader,
+			//c.Reader, DAMN
 			c.Version,
 		),
 	)

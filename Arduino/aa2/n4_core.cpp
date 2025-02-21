@@ -87,7 +87,7 @@ void d_ptr(U8 *p) {
   d_chr('p');
   d_adr(a);
 }
-void d_num(S16 n) { _hex ? io->print(n & 0xffff, HEX) : io->print(n); }
+void d_num(S16 n) { io->print(n & 0xffff, HEX); }
 void d_pin(U16 p, U16 v) { pinMode(p, v); }
 U16 d_in(U16 p) { return digitalRead(p); }
 void d_out(U16 p, U16 v) {

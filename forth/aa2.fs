@@ -50,20 +50,37 @@
 
 \ ======================
 
+\ SYMBOLIC ADDRESSES (they are off by about +0x3D)
+
 \ C-API Drawing words
 
-: Label    5   API ;
-: Forward  2   API ;
-: BigNum   1   API ; ( ; biblically accurate dump of 65K in BigNumber format: 0xBF004103, precision is for nerds )
-: Number   4   API ;
-: Value    6   API ;
-: Ip       7   API ;
-: Ms       3   API ;
-: helper-Antenna
-	A 1 Number COLON BigNum SPACE
-	A 2 Number COLON BigNum Forward
-	A 3 Number COLON BigNum SPACE
-	A 4 Number COLON BigNum Forward
+: Button-Data	( ; storage for button presses )
+
+	\ 03D:                              bbbb00
+	\ 040: 00000000 bbbbbbbb bbbbbbbb bbbbbbbb
+	\ 050: bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+	\ 060: bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+	\ 070: bb80
+
+	\ 03F->OK-button
+	\ 040->Arrow-button
+	\ 041->Action
+
+	\ 042:070->Free memory for storage
+
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
+	#_4
 ;
 
 \ ======================
@@ -110,18 +127,18 @@
 
 	#_4 #_4 #_4 #_4		( COMPILE TIME: data-end-addr ; 16 byte data buffer ) 
 
-	0       Label		( label-id ; Main label, shows device name )
-	VERSION Number		( device-version )
-	        Forward
+	0       5 API		( label-id ; LABEL, device name )
+	VERSION 4 API 		(          ; NUMBER device-version )
+	        2 API		(          ; FORWARD )
 
-	#4      Forward		( COMPILE TIME: tagged-addr )
-	#4      Forward		( COMPILE TIME: tagged-addr tagged-addr-2 )
+	#4      2 API  		( COMPILE TIME: tagged-addr )
+	#4      2 API  		( COMPILE TIME: tagged-addr tagged-addr-2 )
 
-	3       Label NOP	( label-id ; Main label #2, shows device connectivity )
-	0       Value		( value-id )
-	        Forward
+	3       5 API NOP	( label-id ; LABEL, Main label #2, shows device connectivity )
+	0       6 API		( value-id ; VALUE )
+	        2 API
 
-	0 API			( 0 ; C-Api call #0: Draw screen )
+	        0 API		( 0        ; C-Api call #0: Draw screen )
 ;
 
 VALUE 2-CODE     ( data-end-addr tagged-addr tagged-addr-2 ; Address of the second screen code buffer )
@@ -166,10 +183,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	DATA + C!
 ;
 
-: data-raw!
-	DATA + !
-;
-
 : data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
 	4			( value idx align ; this one has fixed alignment because 4 is the max size )
 	DATA calc-align         ( value idx align ) 
@@ -178,83 +191,37 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ ======================
 
-\ Calling Words
-
-: prepare-call		( word-addr target-addr -- ; this function is specific to the [encode-]call! functions )
-	>R			( word-addr        target-addr ; puts target-addr in a pokeball )
-	$C000 OR		( word-addr        call-opcode ; creates a call instruction, C000 | Address )
-	R>			( call-instruction             ; goes like "target-addr, i choose you!" )
-;
-
-: encode-call!  	( word-addr target-addr -- ; useful in code modifying words, encode a literal call instruction )
-	prepare-call		( word-addr        target-addr ; )
-	16-bit-encode!		( call-instruction target-addr ; encodes the created call instruction as a value to target-addr )
-;
-
-: call! 		( word-addr target-addr -- ; writes a call instruction in target-addr )
-	prepare-call		( word-addr        target-addr ; )
-	!			( call-instruction target-addr ; writes the created call instruction, modifying target-addr )
-;
-
-: call-idx!		( word-addr idx code-addr -- ; writes a call instruction to aligned offset )
-	>R			( word-addr idx align code-addr ; storing code-addr )
-	2 R>			( word-addr idx align           ; retrieving code-addr, to reorder )
-	calc-align		( word-addr idx align code-addr ; 2-byte call )
-	call!			( word-addr indexed-addr )
-;
-
-\ ======================
-
-\ Screen function addresses
-
-' Label          VALUE addr-Label
-' Forward        VALUE addr-Forward
-' BigNum         VALUE addr-BigNum
-' Number         VALUE addr-Number
-' Value          VALUE addr-Value
-' Ip             VALUE addr-Ip
-' Ms             VALUE addr-Ms
-' helper-Antenna VALUE addr-Antenna  
-
 \ Screen functions
 
-( ADDR IDX N-CODE call-idx! )
-: program-calls!	( addr-W1 addr-W2 n-CODE -- ; programs the passed words into the specified CODE section )
-	DUP >R >R		( addr-W1 addr-W2 n-CODE -- addr-W1 addr-W2 ; puts n-CODE in the return stack for 2 uses )
-	1      R> call-idx!	( addr-W1 addr-W2 ; programs W2 to n-CODE index 1 )
-	0   R>    call-idx!	( addr-W1         ; programs W1 to n-CODE index 0 )
-;
-
-\ Fixed screen graphic codes:
 \
-\ 			     LABELS                 VALUES
-\                         _____________          _____________
-\ 			$00  PORTAL   My       $00  WEB        
-\ 			$01  ATLETAS           $01  CONECTAD   
-\ 			$02  REGIST.           $02  DESLIGAD   
-\ 			$03  COMUNICANDO       $03  AUTOMATIC  
-\ 			$04  LEITOR            $04  OK         
-\ 			$05  LTE/4G:           $05  X          
-\ 			$06  WIFI:             $06  A          
-\ 			$07  IP:               $07  COLON      
-\ 			$08  LOCAL:
-\ 			$09  PROVA:
-\ 			$0A  PING:
-\ 			$0B  HORA:
-\ 			$0C  USB:
-\ 			$0D  AGUARDE...
-\ 			$0E  ERRO TENTAR,
-\ 			$0F    NOVAMENTE
+\ 	    	     LABELS                 VALUES            API
+\                 _____________          _____________     _________
+\ 	        $00  PORTAL   My       $00  WEB           Label    5
+\ 	        $01  ATLETAS           $01  CONECTAD      Forward  2
+\ 	        $02  REGIST.           $02  DESLIGAD      BigNum   1
+\ 	        $03  COMUNICANDO       $03  AUTOMATIC     Number   4
+\ 	        $04  LEITOR            $04  OK            Value    6
+\ 	        $05  LTE/4G:           $05  X             Ip       7
+\ 	        $06  WIFI:             $06  A             Ms       3
+\ 	        $07  IP:               $07  COLON      
+\ 	        $08  LOCAL:
+\ 	        $09  PROVA:
+\ 	        $0A  PING:
+\ 	        $0B  HORA:
+\ 	        $0C  USB:
+\ 	        $0D  AGUARDE...
+\ 	        $0E  ERRO TENTAR,
+\ 	        $0F    NOVAMENTE
 \
-\ 			$10  RFID  -
-\ 			$11  SERIE:
-\ 			$12  SIST.
+\ 	        $10  RFID  -
+\ 	        $11  SERIE:
+\ 	        $12  SIST.
 \
-\ 			$13  PRESSIONE,
-\ 			$14  PARA CONFIRMAR
+\ 	        $13  PRESSIONE,
+\ 	        $14  PARA CONFIRMAR
 \
-\ 			$15  OFFLINE
-\ 			$16  DATA:
+\ 	        $15  OFFLINE
+\ 	        $16  DATA:
  
 : clean!
 	\ DATA:
@@ -277,14 +244,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	$bbbb DATA $C + !
 	$bbbb DATA $A + !
 	$bbbb DATA $E + !
-;
-
-: code-clean!
-	$bbbb 1-CODE      !
-	$bbbb 1-CODE $2 + !
-
-	$bbbb 2-CODE      !
-	$bbbb 2-CODE $2 + !
 ;
 
 : S-1* ( m2 vvv2 m1 vvv1 -- ; extern, Tags+Unicas )
@@ -336,11 +295,31 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( align )     ( 4 )
 	data-Big!
 
-	addr-Label
-	addr-BigNum 1-CODE program-calls!
+;
+: PROG-S-1
+	0 0 0 0 S-1*
 
-	addr-Label
-	addr-BigNum 2-CODE program-calls!
+	\ Code
+
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for BigNum)
+	( value  ) $01B4
+	( offset ) $02
+	1-CODE + !
+
+	( id for label )
+ 	( value  ) $05B4
+	( offset ) $00
+	2-CODE + !
+
+	( id for BigNum)
+	( value  ) $01B4
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-2* ( st o1 o2 o3 o4 -- ; extern, IP+State )
@@ -355,31 +334,31 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 	\ DATA:
 	\         REL   ADDR
-        \       DATA+00 082: st04____   DATA Row 1
-        \       DATA+04 086: ________   DATA Row 2
-        \       DATA+08 08A: o1o2o3o4   DATA Row 3
-        \       DATA+0C 08E: 07______   DATA Row 4
+        \       DATA+00 082: st04BFo1   DATA Row 1
+        \       DATA+04 086: o1BFo2o2   DATA Row 2
+        \       DATA+08 08A: BFo3o3BF   DATA Row 3
+        \       DATA+0C 08E: o4o407__   DATA Row 4
 
 	\ Data for 1-CODE
 	\ we reserve the two LAST rows for that data.
 
 	( LABEL: IP: )
 	( value )  $07
-	( index )  $0C
+	( index )  $0E
 	data-C!
 
 	( value ) ( st o1 o2 o3 o4 )
-	( index )  $0B
-	data-C!
+	( index )  $02
+	data!
 	( value ) ( st o1 o2 o3 )
-	( index )  $0A
-	data-C!
+	( index )  $05
+	data!
 	( value ) ( st o1 o2 )
-	( index )  $09
-	data-C!
-	( value ) ( st o1 )
 	( index )  $08
-	data-C!
+	data!
+	( value ) ( st o1 )
+	( index )  $0B
+	data!
 
 	\ Data for 2-CODE
 	\ we reserve the two FIRST rows for that data
@@ -392,12 +371,31 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( st )
 	( index )  $00
 	data-C!
+;
+: PROG-S-2
+	5 0 0 0 0 S-2*
 
-	addr-Label
-	addr-Ip 1-CODE program-calls!
+	\ Code
 
-	addr-Label
-	addr-Value 2-CODE program-calls!
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for IP )
+	( value  ) $07B4
+	( offset ) $02
+	1-CODE + !
+
+	( id for label )
+ 	( value  ) $05B4
+	( offset ) $00
+	2-CODE + !
+	
+	( id for value )
+	( value  ) $06B4
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-3* ( ping state lte-or-wifi[$05/$06] -- ; extern, Wifi/Lte )
@@ -447,17 +445,36 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( index )  $00
 	data!
 
-	addr-Label
-	addr-Value 1-CODE program-calls!
+;
+: PROG-S-3
+	0 2 6 S-3*
 
-	addr-Label
-	addr-Ms 2-CODE program-calls!
+	\ Code
+
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for value )
+	( value  ) $06B4
+	( offset ) $02
+	1-CODE + !
+
+	( id for label )
+ 	( value  ) $05B4
+	( offset ) $00
+	2-CODE + !
+
+	( id for MS )
+	( value  ) $03B4
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-4* ( m1 v1 m2 v2 m3 v3 m4 v4 -- ; extern, Antennas )
 
 	\ clean!		( we do   use all slots )
-	code-clean!		( we dont use all slots )
 	 
 	\ _         -> bb ( NOP )
 
@@ -474,8 +491,30 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	1 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
 	2 data-Big!		( m1 v1 m2 v2             idx )
 	3 data-Big!		( m1 v1                   idx )
+;
+: PROG-S-4
+	0 0
+	0 0
+	0 0
+	0 0 S-4*
 
-	addr-Antenna 0 1-CODE call-idx!
+	\ antenna API call
+
+	( value  ) $08B4
+	( offset ) $00
+	1-CODE + !
+
+	( value  ) $BBBB
+	( offset ) $02
+	1-CODE + !
+
+	( value  ) $BBBB
+	( offset ) $00
+	2-CODE + !
+
+	( value  ) $BBBB
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-5*	( hour min sec day mon year -- ; extern, DateTime, this one is a mess )
@@ -532,12 +571,31 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( hour )
 	( index )  $09
 	data-C!
+;
+: PROG-S-5
+	0 0 0 0 0 0 S-5*
 
-	addr-Label
-	addr-Ip 1-CODE program-calls!
+	\ Code
 
-	addr-Label
-	addr-Ip 2-CODE program-calls!
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for IP )
+	( value  ) $07B4
+	( offset ) $02
+	1-CODE + !
+
+	( id for label )
+ 	( value  ) $05B4
+	( offset ) $00
+	2-CODE + !
+
+	( id for IP )
+	( value  ) $07B4
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-6*	( state ; extern, USB )
@@ -550,7 +608,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
         \       DATA+0C 08E: ________   DATA Row 4
 
 	clean!
-	code-clean!		( ; we do not use all call slots )
 
 	( LABEL: USB: )
 	( value ) $0C
@@ -558,11 +615,31 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	data-C!
 
 	( value ) ( state )
-	( index )  $00
+	( index ) $00
 	data-C!
+;
+: PROG-S-6
+	2 S-6*
 
-	addr-Label
-	addr-Value 1-CODE program-calls!
+	\ Code
+
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for value )
+	( value  ) $06B4
+	( offset ) $02
+	1-CODE + !
+
+ 	( value  ) $BBBB
+	( offset ) $00
+	2-CODE + !
+
+	( value  ) $BBBB
+	( offset ) $02
+	2-CODE + !
 ;
 
 : S-7*	( version-hash ; extern, System info )
@@ -603,90 +680,163 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( version-hash )
 	( index ) $08
 	data!
+;
+: PROG-S-7
+	0 S-7*
 
-	addr-Label
-	addr-BigNum 1-CODE program-calls!       
+	\ Code
 
-	addr-Label
-	addr-BigNum 2-CODE program-calls!
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	1-CODE + !
+
+	( id for BigNum )
+	( value  ) $01B4
+	( offset ) $02
+	1-CODE + !
+
+	( id for label )
+	( value  ) $05B4
+	( offset ) $00
+	2-CODE + !
+
+	( id for BigNum )
+	( value  ) $01B4
+	( offset ) $02
+	2-CODE + !
 ;
 
 \ TODO redesign waiting, should it be here or in the pc?
 
 : S-8*  ( ; extern, Confirmation screen )
 
-	0   TME
+	( EXIT opcode )
+	( value ) $80
+	( index ) $00
+	data-C!
+
+	  0 TME
+	  1 TME	( reset timers )
 	100 DLY
-		  Forward
-	$13 Label Forward
-	$14 Label Forward
-		  Forward
-	0   API
-	\ TODO wait for input
+		  2 API
+	$13 5 API 2 API
+	$14 5 API 2 API
+		  2 API
+	    0 API
 ;
 
 : S-9*  ( ; extern, Error screen )
 
-	0    TME
-	100  DLY
-	           Forward
-	$0E  Label Forward
-	$0F  Label Forward
-	           Forward
-	0    API
+	( EXIT opcode )
+	( value ) $80
+	( index ) $00
+	data-C!
 
-	5000 DLY
-	1    TME
+	  0  TME
+	  1  TME	( reset timers )
+	100  DLY
+	           2 API
+	$0E  5 API 2 API
+	$0F  5 API 2 API
+	           2 API
+	     0 API
+;
+
+: S-A*	( ; extern, loading screen )
+
+	( EXIT opcode )
+	( value ) $80
+	( index ) $00
+	data-C!
+
+	  0  TME
+	  1  TME	( reset timers )
+	100  DLY
+	           2 API
+	$0E  5 API 2 API
+	$0F  5 API 2 API
+	           2 API
+	     0 API
 ;
 
 \ ======================
 
 \ User input: ( 💀 )
 
-VARIABLE ok-down
-VARIABLE arrow-down
-VARIABLE Action
+\ +$00     -> ok-down
+\ +$01     -> arrow-down
+\ +$02     -> Action
+\ +$03     -> confirm-addr CONST
+\ +$05:$11 -> jmp table
 
-0 Action !
-0 ok-down !
-0 arrow-down !
+' Button-Data 2 + VALUE VOID
 
-: confirm
-	$00 Action !
-;
-' confirm VALUE addr-Confirm 
+: VOID@ ( slot -- value ) VOID + C@ ;
+: VOID! ( value slot -- ) VOID + C! ;
+
+$00 0 VOID!
+$00 1 VOID!
+$00 2 VOID!
+
+: confirm $00 2 VOID! ;
+' confirm VOID 3 + !
+
+\ programmers JMP table
+' PROG-S-1 VOID $05 + !
+' PROG-S-2 VOID $07 + !
+' PROG-S-3 VOID $09 + !
+' PROG-S-4 VOID $0B + !
+' PROG-S-5 VOID $0D + !
+' PROG-S-6 VOID $0F + !
+' PROG-S-7 VOID $11 + !
 
 : switch-screen
-	addr-Confirm C@ 1 + 7 MOD DUP	( current-screen +1 MOD7 )
-	addr-Confirm C!			( current-screen' current-screen' )
+	VOID 3 + @ C@ 1 + 7 MOD DUP DUP	( current-screen +1 MOD7 )
+	VOID 3 + @ C!			( current-screen'x2 )
+	$60 OR VOID 2 + C!		( switch-screen-mark current-screen' )
 
-	$F0 OR Action !			( switch-screen-mark current-screen' )
+	( align  )  $02 *
+	( offset )  $05 +
+	( calc   ) VOID + @ EXECUTE
 ;
 
 : do-button	( ; processes button input )
 	6 IN 0 = DUP    	(               ; detect arrow button )
 	7 IN 0 = DUP    	( arrow-down?x2 ; detect ok    button )
 
-	ok-down @ NOT AND	( arrow-down?x2 ok-down?x2 )
+	0 VOID@ NOT AND		( arrow-down?x2 ok-down?x2 )
 	IF			( arrow-down?x2 ok-down? ok-pressed? )
 		confirm
 	THEN
-	ok-down !		( arrow-down?x2 ok-down? )
+	0 VOID!			( arrow-down?x2 ok-down? )
 
-	arrow-down @ NOT AND	( arrow-down?x2 )
+	1 VOID@ NOT AND		( arrow-down?x2 )
 	IF			( arrow-down? arrow-pressed? )
 		switch-screen
 	THEN
-	arrow-down !		( arrow-down? )
+	1 VOID!			( arrow-down? )
+;
+
+: restore	( ; restores the screen when we block it )
+	DATA C@ $80 =
+	IF
+		$BB DATA C!
+	THEN
 ;
 
 \ ======================
 
 \ Initialization
 
+PROG-S-1	( ; set default screen )
+
 500 DLY
-120 1 TMI Dis
-100 0 TMI do-button
+
+5000 3 TMI restore
+100  1 TMI Dis
+10   0 TMI do-button
+
 1 TME
 
 \ ======================

@@ -23,7 +23,7 @@
 
 #define APP_NAME          "\nnanoForth "
 #define APP_VERSION       "2.0 "
-#define N4_API_SZ         8       /**< C API function pointer slots */
+#define N4_API_SZ         9       /**< C API function pointer slots */
 #define TRC_LEVEL         0       /**< tracing verbosity level      */
 
 ///@name Arduino Console Output Support

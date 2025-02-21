@@ -3,6 +3,8 @@ package lcdlogger
 import (
 	"context"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	c "aa2/constant"
@@ -19,7 +21,7 @@ type SerialDisplay struct {
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := flick.NewForth("/dev/ttyUSB0")
+	f, err := flick.NewForth("/dev/ttyACM0")
 
 	if err != nil {
 
@@ -76,24 +78,44 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	// TODO: onrelease actions
 
-	res, err := display.Forth.Send("v49 @ .")
+	res, err := display.Forth.Send("$041 @ .")
+
+	log.Println(res, err)
 
 	if err != nil {
 
 		return
 	}
 
-	defer display.Forth.Send("0 v49 !")
+	if len(res) < 2 {
+		return
+	}
 
-	if res[:2] == "24" {
+	defer display.Forth.Send("0 $041 !")
+
+	log.Println(res)
+
+	n64, err := strconv.ParseInt(strings.TrimSpace(res[:2]), 16, 8)
+
+	if err != nil {
+		return
+	}
+
+	n := int(n64)
+
+	if n == 0 {
+		return
+	}
+
+	if n >= 0x60 {
 		log.Println("Switching screen: ")
 
-		display.Screen = int(res[3]) + int('0')
+		display.Screen = (n & 0x0F)
 
 		return
 	} else {
 		log.Println("Pressed!")
 
-		display.action = Action(res[2])
+		display.action = Action(n)
 	}
 }
