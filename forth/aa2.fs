@@ -56,17 +56,16 @@
 
 : Button-Data	( ; storage for button presses )
 
-	\ 03D:                              bbbb00
-	\ 040: 00000000 bbbbbbbb bbbbbbbb bbbbbbbb
-	\ 050: bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
-	\ 060: bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
-	\ 070: bb80
+	\ 000: ffff7730 20bbbb00 00000365 01350180
+	\ 010: 01c201ff 025b0298 02e7bbbb bbbbbbbb
+	\ 020: bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+	\ 030: bbbbbbbb bbbbbbbb bb80
 
-	\ 03F->OK-button
-	\ 040->Arrow-button
-	\ 041->Action
+	\ 008->OK-button
+	\ 009->Arrow-button
+	\ 00A->Action
 
-	\ 042:070->Free memory for storage
+	\ 00B:039->Free memory for storage
 
 	#_4
 	#_4
@@ -150,44 +149,30 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ Utility functions for memory access
 
-: 16-bit-encode!	( int16 addr -- )
-	$BF			( int16 addr Lit-opcode      ; $BF is the opcode for pushing 16-bit integers to the stack )
-	OVER C!			( int16 addr Lit-opcode addr ; writes a single byte LIT instruction to addr )
-	1 +			( int16 addr +1              ; offsets addr by 1, right next to the LIT opcode )
-	      !			( int16 addr'                ; writes a 2-byte, i.e. 16-bit, signed integer to addr' )
+: Encode!	( int16 addr -- )
+	$BF		( int16 addr Lit-opcode      ; $BF is the opcode for pushing 16-bit integers to the stack )
+	OVER C!		( int16 addr Lit-opcode addr ; writes a single byte LIT instruction to addr )
+	1 +		( int16 addr +1              ; offsets addr by 1, right next to the LIT opcode )
+	      !		( int16 addr'                ; writes a 2-byte, i.e. 16-bit, signed integer to addr' )
 ;
 
-: F!			( m v iaddr -- )
-	DUP >R			( m v iaddr       ; saves a copy of indexed-addr for later )
-	16-bit-encode!		( m v iaddr       ; encodes value to specified DATA buffer index )
-	R>			( m   iaddr       ; restores indexed-addr from Rstack )
-	3 +			( m   iaddr +3    ; offsets the indexed address by 3 bytes )
-	     C!			( m   iaddr'      ; writes the single-byte magnitude right next to the encoded value )
-;
-
-: calc-align		( idx align addr -- iaddr ; calculates aligned offset of the specified index )
-	>R			( idx align addr )
-	 *			( idx align      ; calculates ALIGN-byte *offset* )
-	R>			( offset         )
-	 +			( offset addr    ; calculates base address + offset to get the indexed-address )
+: F!		( m v iaddr -- )
+	DUP >R		( m v iaddr       ; saves a copy of indexed-addr for later )
+	Encode!		( m v iaddr       ; encodes value to specified DATA buffer index )
+	R>		( m   iaddr       ; restores indexed-addr from Rstack )
+	3 +		( m   iaddr +3    ; offsets the indexed address by 3 bytes )
+	     C!		( m   iaddr'      ; writes the single-byte magnitude right next to the encoded value )
 ;
 
 \ ======================
 
-\ Aligned writes
+\ writes based on bitsize
 
-: data!			( value idx -- ; n-byte aligned 16-bit write to DATA buffer )
-	DATA + 16-bit-encode!
+: data!	    (    v16 i -- )
+	DATA + Encode!
 ;
-: data-C!		( value idx -- ; n-byte aligned 8-bit write to DATA buffer )
-	DATA + C!
-;
-
-: data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
-	4			( value idx align ; this one has fixed alignment because 4 is the max size )
-	DATA calc-align         ( value idx align ) 
-	            F!		( value iaddr     ; writes a BigNumber to the specified DATA index )
-;
+: data-C!   (    v8  i -- )     DATA + C!      ;
+: data-Big! ( m7 v16 i -- ) 4 * DATA + F!      ;
 
 \ ======================
 
@@ -709,121 +694,128 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ TODO redesign waiting, should it be here or in the pc?
 
-: S-8*  ( ; extern, Confirmation screen )
-
-	( EXIT opcode )
-	( value ) $80
-	( index ) $00
-	data-C!
-
-	  0 TME
-	  1 TME	( reset timers )
-	100 DLY
-		  2 API
-	$13 5 API 2 API
-	$14 5 API 2 API
-		  2 API
-	    0 API
-;
-
-: S-9*  ( ; extern, Error screen )
-
-	( EXIT opcode )
-	( value ) $80
-	( index ) $00
-	data-C!
-
-	  0  TME
-	  1  TME	( reset timers )
-	100  DLY
-	           2 API
-	$0E  5 API 2 API
-	$0F  5 API 2 API
-	           2 API
-	     0 API
-;
-
-: S-A*	( ; extern, loading screen )
-
-	( EXIT opcode )
-	( value ) $80
-	( index ) $00
-	data-C!
-
-	  0  TME
-	  1  TME	( reset timers )
-	100  DLY
-	           2 API
-	$0E  5 API 2 API
-	$0F  5 API 2 API
-	           2 API
-	     0 API
-;
-
 \ ======================
 
 \ User input: ( 💀 )
 
-\ +$00     -> ok-down
-\ +$01     -> arrow-down
+\ +$00     -> 
+\ +$01     -> 
 \ +$02     -> Action
 \ +$03     -> confirm-addr CONST
-\ +$05:$11 -> jmp table
+\ +$05:$11 -> jmp table    CONST
+\ +$13     -> Lock input
+\ +$14     -> ok-down?
+\ +$16     -> arrow-down?
 
-' Button-Data 2 + VALUE VOID
+' Button-Data 2 + VALUE BAG
 
-: VOID@ ( slot -- value ) VOID + C@ ;
-: VOID! ( value slot -- ) VOID + C! ;
+: BAG@ ( slot -- value ) BAG + C@ ;
+: BAG! ( value slot -- ) BAG + C! ;
 
-$00 0 VOID!
-$00 1 VOID!
-$00 2 VOID!
+$00 $00 BAG!
+$00 $01 BAG!
+$00 $02 BAG!
 
-: confirm $00 2 VOID! ;
-' confirm VOID 3 + !
+: redraw
+	BAG 3 + @ C@
+
+	( align  ) $02 *
+	( offset ) $05 +
+	( calc   ) BAG + @ EXECUTE
+;
+
+: restore	( ; restores screen/input when we block them )
+	DATA C@ $80 =
+	IF
+		redraw
+	THEN
+
+	BAG $13 + @ C@ $80 =
+	IF
+		$BB BAG $13 + @ C!
+	THEN
+; 
+
+: lock-display
+	( EXIT opcode )
+	( value ) $80
+	( index ) $00
+	data-C!
+
+	100 DLY
+;
+
+: S-A*  ( l1 l2 -- ; extern, Error[$0E-$0F]/Loading[$0D]/Confirmation screen[$13-$14] )
+
+        lock-display
+
+	DUP $14 === NOT IF
+		$80 BAG $13 + @ C! \ Block input
+	THEN
+
+	\ wait-key
+
+	2 API
+
+	SWAP 5 API 2 API	( l1 l2 )
+
+	DUP 0 = IF		( l2 )
+		2 API DROP
+	ELSE
+		5 API 2 API	( l2 )
+	THEN
+
+	2 API
+
+	0 API
+; 
+
+: confirm $00 2 BAG! ;
+' confirm BAG 3 + !
 
 \ programmers JMP table
-' PROG-S-1 VOID $05 + !
-' PROG-S-2 VOID $07 + !
-' PROG-S-3 VOID $09 + !
-' PROG-S-4 VOID $0B + !
-' PROG-S-5 VOID $0D + !
-' PROG-S-6 VOID $0F + !
-' PROG-S-7 VOID $11 + !
+' PROG-S-1 BAG $05 + !
+' PROG-S-2 BAG $07 + !
+' PROG-S-3 BAG $09 + !
+' PROG-S-4 BAG $0B + !
+' PROG-S-5 BAG $0D + !
+' PROG-S-6 BAG $0F + !
+' PROG-S-7 BAG $11 + !
 
 : switch-screen
-	VOID 3 + @ C@ 1 + 7 MOD DUP DUP	( current-screen +1 MOD7 )
-	VOID 3 + @ C!			( current-screen'x2 )
-	$60 OR VOID 2 + C!		( switch-screen-mark current-screen' )
-
-	( align  )  $02 *
-	( offset )  $05 +
-	( calc   ) VOID + @ EXECUTE
+	BAG 3 + @ C@ 1 + 7 MOD DUP DUP  ( current-screen +1 MOD7 )
+	BAG 3 + @ C!
+	$60 OR 2 BAG!
+	redraw
 ;
 
 : do-button	( ; processes button input )
+	TAG			( ; LOCK )
+
 	6 IN 0 = DUP    	(               ; detect arrow button )
 	7 IN 0 = DUP    	( arrow-down?x2 ; detect ok    button )
 
-	0 VOID@ NOT AND		( arrow-down?x2 ok-down?x2 )
+	0 BAG@ NOT AND		( arrow-down?x2 ok-down?x2 )
 	IF			( arrow-down?x2 ok-down? ok-pressed? )
 		confirm
+		restore
 	THEN
-	0 VOID!			( arrow-down?x2 ok-down? )
+	0 BAG!			( arrow-down?x2 ok-down? )
 
-	1 VOID@ NOT AND		( arrow-down?x2 )
+	1 BAG@ NOT AND		( arrow-down?x2 )
 	IF			( arrow-down? arrow-pressed? )
 		switch-screen
 	THEN
-	1 VOID!			( arrow-down? )
+	1 BAG!			( arrow-down? )
 ;
+BAG $13 + !	( [LOCKTAG] ; storing the lock )
 
-: restore	( ; restores the screen when we block it )
-	DATA C@ $80 =
-	IF
-		$BB DATA C!
-	THEN
-;
+\ ======================
+
+\ Extern
+
+: AC@*  2 BAG@ ;
+: RST* restore ;
 
 \ ======================
 
@@ -833,7 +825,6 @@ PROG-S-1	( ; set default screen )
 
 500 DLY
 
-5000 3 TMI restore
 100  1 TMI Dis
 10   0 TMI do-button
 

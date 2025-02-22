@@ -30,6 +30,8 @@ using namespace N4Core; /// * VM built with core units
 #define RPUSH(a)                                                               \
   (*(vm.rp++) = (U16)(a))   /**< push address onto return stack      */
 #define RPOP() (*(--vm.rp)) /**< pop address from return stack       */
+#define BOOL(f) ((f) ? -1 : 0)               /**< TRUE=-1 per common Forth idiom      */
+
 ///@}
 ///@name Dictionary Index <=> Pointer Converters
 ///@{
@@ -229,7 +231,7 @@ void _invoke(U8 op) {
     _X(24, U8 *p = DIC(POP()); PUSH((U16)*p));      // C@
     _X(25, U8 *p = DIC(POP()); *p = (U8)POP());     // C!
     _X(26, PUSH((U16)key()));                       // KEY
-    _X(27, d_chr((U8)POP()));                       // EMT
+    _X(27, TOS = BOOL(POP() == TOS));               // ===
     _X(28, PUSH(SS(POP())));                        // PCK
     _X(29, d_num(POP()); d_chr(' '));               // .
     _X(30, {});                                     // ."  handled one level up

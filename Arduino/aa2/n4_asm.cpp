@@ -46,7 +46,7 @@ PROGMEM const char JMP[] = "\x0b" \
 #define N4_WORDS \
     "RET" "DRP" "DUP" "SWP" "OVR" "ROT" "+  " "-  " "*  " "/  " \
     "MOD" "NEG" "AND" "OR " "XOR" "NOT" "LSH" "RSH" "=  " "<  " \
-    ">  " "<> " "@  " "!  " "C@ " "C! " "KEY" "EMT" "PCK" ".  " \
+    ">  " "<> " "@  " "!  " "C@ " "C! " "KEY" "===" "PCK" ".  " \
     ".\" "">R " "R> " "HRE" "RND" "ALO" "TRC" "CLK" "D+ " "D- " \
     "DNG" "ABS" "MAX" "MIN" "DLY" "IN " "AIN" "OUT" "PWM" "PIN" \
     "TME" "PCE" "API"
