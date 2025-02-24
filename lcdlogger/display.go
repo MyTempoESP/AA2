@@ -21,7 +21,7 @@ type SerialDisplay struct {
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := flick.NewForth("/dev/ttyACM0")
+	f, err := flick.NewForth("/dev/ttyACM1")
 
 	if err != nil {
 
@@ -45,7 +45,7 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
-	defer display.Forth.Send("0 v49 !")
+	defer display.Forth.Send("AC@ .")
 
 	for {
 		select {
@@ -74,11 +74,11 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 	}
 }
 
-func (display *SerialDisplay) SwitchScreens() {
+func (display *SerialDisplay) SwitchScreens() (n int) {
 
 	// TODO: onrelease actions
 
-	res, err := display.Forth.Send("$041 @ .")
+	res, err := display.Forth.Send("AC@ .") // fetch action
 
 	log.Println(res, err)
 
@@ -91,7 +91,7 @@ func (display *SerialDisplay) SwitchScreens() {
 		return
 	}
 
-	defer display.Forth.Send("0 $041 !")
+	// defer display.Forth.Send("0 2 w23") // store 0 to Action
 
 	log.Println(res)
 
@@ -101,21 +101,26 @@ func (display *SerialDisplay) SwitchScreens() {
 		return
 	}
 
-	n := int(n64)
+	n = int(n64)
 
 	if n == 0 {
 		return
 	}
 
 	if n >= 0x60 {
-		log.Println("Switching screen: ")
 
-		display.Screen = (n & 0x0F)
+		n = (n & 0x0F)
+
+		log.Println("Selecting screen: ", n)
 
 		return
-	} else {
-		log.Println("Pressed!")
-
-		display.action = Action(n)
 	}
+
+	log.Println("Pressed!")
+
+	display.action = Action(n)
+
+	n = 0
+
+	return
 }

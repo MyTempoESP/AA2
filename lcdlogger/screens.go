@@ -22,6 +22,20 @@ type IPOctets [4]int
 
 func (display *SerialDisplay) DrawScreen(code string) {
 
+	n := code[len(code)-1]
+
+	t, err := display.Forth.Send(fmt.Sprintf("%c v37 3 + @ C@ = .", n))
+
+	if err != nil {
+
+		return
+	}
+
+	if t[0] == '0' {
+
+		return
+	}
+
 	display.Forth.Send(code)
 }
 

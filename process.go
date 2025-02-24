@@ -93,86 +93,95 @@ func (a *Ay) Process() {
 	go func() {
 
 		const NUM_EQUIP = 501
-		const TIME_EACH_1 time.Duration = 50 * time.Millisecond
-		const TIME_EACH_2 time.Duration = 20 * time.Millisecond
+		const TIME_EACH_1 time.Duration = 100 * time.Millisecond
+		const TIME_EACH_2 time.Duration = 100 * time.Millisecond
 
 		for {
-			display.SwitchScreens()
+			//display.SwitchScreens()
+
+			//time.Sleep(TIME_EACH_1)
+
+			// if action, hasAction := display.Action(); hasAction {
+
+			// 	switch action {
+			// 	case lcdlogger.ACTION_RESET:
+			// 		display.ScreenConfirma()
+			// 	default:
+			// 		display.ScreenProgress()
+			// 	}
+
+			// 	err = nil
+
+			// 	switch action {
+			// 	case lcdlogger.ACTION_WIFI: /* empty */
+			// 	case lcdlogger.ACTION_TIME: /* empty */
+			// 	case lcdlogger.ACTION_RESET:
+			// 		{
+			// 			hasKey := display.WaitKeyPress(5 * time.Second)
+
+			// 			if !hasKey { // timeout
+
+			// 				continue
+			// 			}
+
+			// 			display.ScreenProgress()
+
+			// 			// resetar equip
+
+			// 			// err = ResetarTudo()
+			// 			tagsFile.Clear()
+			// 		}
+			// 		fallthrough // resetar tags
+			// 	case lcdlogger.ACTION_TAGS:
+			// 		{
+
+			// 			for i := range 4 {
+			// 				antennas[i].Store(0)
+			// 			}
+
+			// 			tags.Store(0)
+			// 			tagSet.Clear()
+			// 		}
+			// 	case lcdlogger.ACTION_USB:
+			// 		{
+
+			// 			err = CopyToUSB(&device, &tagsFile)
+
+			// 			if err == nil {
+
+			// 				t := tagsUSB.Load()
+
+			// 				<-time.After(time.Duration(4+int(t/1000)) * time.Second)
+
+			// 				tagsUSB.Store(0)
+			// 			}
+			// 		}
+			// 	default:
+			// 		continue // no action
+			// 	}
+
+			// 	<-time.After(1 * time.Second) // min 1 sec
+
+			// 	if err != nil {
+
+			// 		display.ScreenErr()
+
+			// 		<-time.After(5 * time.Second)
+
+			// 		continue
+			// 	}
+			// }
+
+			s := display.SwitchScreens()
+
+			if s == 0 {
+
+				goto move_on
+			}
 
 			time.Sleep(TIME_EACH_1)
 
-			if action, hasAction := display.Action(); hasAction {
-
-				switch action {
-				case lcdlogger.ACTION_RESET:
-					display.ScreenConfirma()
-				default:
-					display.ScreenProgress()
-				}
-
-				err = nil
-
-				switch action {
-				case lcdlogger.ACTION_WIFI: /* empty */
-				case lcdlogger.ACTION_TIME: /* empty */
-				case lcdlogger.ACTION_RESET:
-					{
-						hasKey := display.WaitKeyPress(5 * time.Second)
-
-						if !hasKey { // timeout
-
-							continue
-						}
-
-						display.ScreenProgress()
-
-						// resetar equip
-
-						// err = ResetarTudo()
-						tagsFile.Clear()
-					}
-					fallthrough // resetar tags
-				case lcdlogger.ACTION_TAGS:
-					{
-
-						for i := range 4 {
-							antennas[i].Store(0)
-						}
-
-						tags.Store(0)
-						tagSet.Clear()
-					}
-				case lcdlogger.ACTION_USB:
-					{
-
-						err = CopyToUSB(&device, &tagsFile)
-
-						if err == nil {
-
-							t := tagsUSB.Load()
-
-							<-time.After(time.Duration(4+int(t/1000)) * time.Second)
-
-							tagsUSB.Store(0)
-						}
-					}
-				default:
-					continue // no action
-				}
-
-				<-time.After(1 * time.Second) // min 1 sec
-
-				if err != nil {
-
-					display.ScreenErr()
-
-					<-time.After(5 * time.Second)
-
-					continue
-				}
-			}
-
-			switch display.Screen {
+			switch s {
 			case lcdlogger.SCREEN_TAGS:
 				display.ScreenTags(
 					/* Tags    */ lcdlogger.ToForthNumber(tags.Load()),
@@ -248,7 +257,7 @@ func (a *Ay) Process() {
 
 				continue
 			}*/
-
+		move_on:
 			time.Sleep(TIME_EACH_2)
 		}
 	}()

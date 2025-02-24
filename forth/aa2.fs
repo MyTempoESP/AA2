@@ -145,6 +145,8 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 ' Dis VALUE DATA ( ; Address of beginning of screen data buffer )
 
+' Button-Data 2 + VALUE BAG
+
 \ ======================
 
 \ Utility functions for memory access
@@ -280,12 +282,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( align )     ( 4 )
 	data-Big!
 
-;
-: PROG-S-1
-	0 0 0 0 S-1*
-
-	\ Code
-
 	( id for label )
 	( value  ) $05B4
 	( offset ) $00
@@ -356,11 +352,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( st )
 	( index )  $00
 	data-C!
-;
-: PROG-S-2
-	5 0 0 0 0 S-2*
-
-	\ Code
 
 	( id for label )
 	( value  ) $05B4
@@ -430,12 +421,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( index )  $00
 	data!
 
-;
-: PROG-S-3
-	0 2 6 S-3*
-
-	\ Code
-
 	( id for label )
 	( value  ) $05B4
 	( offset ) $00
@@ -476,12 +461,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	1 data-Big!		( m1 v1 m2 v2 m3 v3       idx )
 	2 data-Big!		( m1 v1 m2 v2             idx )
 	3 data-Big!		( m1 v1                   idx )
-;
-: PROG-S-4
-	0 0
-	0 0
-	0 0
-	0 0 S-4*
 
 	\ antenna API call
 
@@ -556,11 +535,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( hour )
 	( index )  $09
 	data-C!
-;
-: PROG-S-5
-	0 0 0 0 0 0 S-5*
-
-	\ Code
 
 	( id for label )
 	( value  ) $05B4
@@ -602,11 +576,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( state )
 	( index ) $00
 	data-C!
-;
-: PROG-S-6
-	2 S-6*
-
-	\ Code
 
 	( id for label )
 	( value  ) $05B4
@@ -665,9 +634,6 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 	( value ) ( version-hash )
 	( index ) $08
 	data!
-;
-: PROG-S-7
-	0 S-7*
 
 	\ Code
 
@@ -698,43 +664,15 @@ VALUE 1-CODE     ( data-end-addr tagged-addr               ; Address of the firs
 
 \ User input: ( 💀 )
 
-\ +$00     -> 
-\ +$01     -> 
 \ +$02     -> Action
 \ +$03     -> confirm-addr CONST
-\ +$05:$11 -> jmp table    CONST
-\ +$13     -> Lock input
 \ +$14     -> ok-down?
 \ +$16     -> arrow-down?
-
-' Button-Data 2 + VALUE BAG
 
 : BAG@ ( slot -- value ) BAG + C@ ;
 : BAG! ( value slot -- ) BAG + C! ;
 
-$00 $00 BAG!
-$00 $01 BAG!
 $00 $02 BAG!
-
-: redraw
-	BAG 3 + @ C@
-
-	( align  ) $02 *
-	( offset ) $05 +
-	( calc   ) BAG + @ EXECUTE
-;
-
-: restore	( ; restores screen/input when we block them )
-	DATA C@ $80 =
-	IF
-		redraw
-	THEN
-
-	BAG $13 + @ C@ $80 =
-	IF
-		$BB BAG $13 + @ C!
-	THEN
-; 
 
 : lock-display
 	( EXIT opcode )
@@ -749,56 +687,33 @@ $00 $02 BAG!
 
         lock-display
 
-	DUP $14 === NOT IF
-		$80 BAG $13 + @ C! \ Block input
-	THEN
-
-	\ wait-key
-
 	2 API
-
 	SWAP 5 API 2 API	( l1 l2 )
-
 	DUP 0 = IF		( l2 )
 		2 API DROP
 	ELSE
 		5 API 2 API	( l2 )
 	THEN
-
 	2 API
-
 	0 API
 ; 
 
 : confirm $00 2 BAG! ;
 ' confirm BAG 3 + !
 
-\ programmers JMP table
-' PROG-S-1 BAG $05 + !
-' PROG-S-2 BAG $07 + !
-' PROG-S-3 BAG $09 + !
-' PROG-S-4 BAG $0B + !
-' PROG-S-5 BAG $0D + !
-' PROG-S-6 BAG $0F + !
-' PROG-S-7 BAG $11 + !
-
 : switch-screen
-	BAG 3 + @ C@ 1 + 7 MOD DUP DUP  ( current-screen +1 MOD7 )
+	BAG 3 + @ C@ 1 + 7 MOD DUP	( current-screen +1 MOD7 )
 	BAG 3 + @ C!
 	$60 OR 2 BAG!
-	redraw
 ;
 
 : do-button	( ; processes button input )
-	TAG			( ; LOCK )
-
 	6 IN 0 = DUP    	(               ; detect arrow button )
 	7 IN 0 = DUP    	( arrow-down?x2 ; detect ok    button )
 
 	0 BAG@ NOT AND		( arrow-down?x2 ok-down?x2 )
 	IF			( arrow-down?x2 ok-down? ok-pressed? )
 		confirm
-		restore
 	THEN
 	0 BAG!			( arrow-down?x2 ok-down? )
 
@@ -808,20 +723,16 @@ $00 $02 BAG!
 	THEN
 	1 BAG!			( arrow-down? )
 ;
-BAG $13 + !	( [LOCKTAG] ; storing the lock )
 
 \ ======================
 
 \ Extern
 
-: AC@*  2 BAG@ ;
-: RST* restore ;
+: AC@* 2 BAG@ ;
 
 \ ======================
 
 \ Initialization
-
-PROG-S-1	( ; set default screen )
 
 500 DLY
 
