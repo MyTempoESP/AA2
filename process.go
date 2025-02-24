@@ -174,11 +174,6 @@ func (a *Ay) Process() {
 
 			s := display.SwitchScreens()
 
-			if s == 0 {
-
-				goto move_on
-			}
-
 			time.Sleep(TIME_EACH_1)
 
 			switch s {
@@ -257,7 +252,6 @@ func (a *Ay) Process() {
 
 				continue
 			}*/
-		move_on:
 			time.Sleep(TIME_EACH_2)
 		}
 	}()
