@@ -1,19 +1,23 @@
 package lcdlogger
 
 import (
+	"bytes"
 	"context"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	c "aa2/constant"
 
-	"github.com/MyTempoesp/flick"
+	"aa2/flick"
+)
+
+const (
+	NOT_READY = -1
 )
 
 type SerialDisplay struct {
-	Forth *flick.MyTempo_Forth
+	Forth *flick.Forth
 
 	Screen int
 	action Action
@@ -21,7 +25,7 @@ type SerialDisplay struct {
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := flick.NewForth("/dev/ttyACM0")
+	f, err := flick.NewForth("/dev/ttyACM0", 500*time.Millisecond)
 
 	if err != nil {
 
@@ -78,49 +82,26 @@ func (display *SerialDisplay) SwitchScreens() (n int) {
 
 	// TODO: onrelease actions
 
-	res, err := display.Forth.Send("AC@ .") // fetch action
-
-	log.Println(res, err)
+	res, err := display.Forth.Query("2 BA@ .") // fetch action
 
 	if err != nil {
 
 		return
 	}
 
-	if len(res) < 2 {
-		return
-	}
+	res = bytes.TrimSuffix(res, []byte{' ', 'o', 'k', '\n'})
 
-	// defer display.Forth.Send("0 2 w23") // store 0 to Action
+	log.Printf("'%s'", res)
 
-	log.Println(res)
-
-	n64, err := strconv.ParseInt(strings.TrimSpace(res[:2]), 16, 8)
+	n64, err := strconv.ParseInt(string(res), 16, 8)
 
 	if err != nil {
 		return
 	}
 
-	n = int(n64)
+	n = int(n64) & 0x0F
 
-	if n == 0 {
-		return
-	}
-
-	if n >= 0x60 {
-
-		n = (n & 0x0F)
-
-		log.Println("Selecting screen: ", n)
-
-		return
-	}
-
-	log.Println("Pressed!")
-
-	display.action = Action(n)
-
-	n = 0
+	// display.action = Action(n)
 
 	return
 }

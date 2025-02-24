@@ -3,34 +3,44 @@
 const char code[] PROGMEM =
 #define NL "\n"
 ": w0" NL
-// @301/v27	->	BAG
-// @85/v26	->	DATA
-// @266/v25	->	1-CODE
-// @271/v24	->	2-CODE
-// @248/v23	->	VERSION
-// @313/w22	->	AC@
-// @315/w21	->	do-button
-// @307/w20	->	switch-screen
-// @301/w19	->	confirm
-// @276/w18	->	S-A
-// @276/w17	->	lock-display
-// @305/w16	->	BAG!
-// @306/w15	->	BAG@
-// @231/w14	->	S-7
-// @210/w13	->	S-6
-// @171/w12	->	S-5
-// @152/w11	->	S-4
-// @127/w10	->	S-3
-// @95/w9	->	S-2
-// @69/w8	->	S-1
-// @225/w7	->	clean!
-// @151/w6	->	data-Big!
-// @260/w5	->	data-C!
-// @239/w4	->	data!
-// @53/w3	->	F!
-// @49/w2	->	Encode!
-// @294/w1	->	Dis
-// @32/w0	->	Button-Data
+// @381/v37	->	BAG
+// @319/v36	->	DATA
+// @299/v35	->	1-CODE
+// @304/v34	->	2-CODE
+// @278/v33	->	VERSION
+// @378/w32	->	RST
+// @376/w31	->	BA@
+// @380/w30	->	do-button
+// @369/w29	->	switch-screen
+// @362/w28	->	confirm
+// @325/w27	->	S-A
+// @325/w26	->	lock-display
+// @371/w25	->	restore
+// @350/w24	->	redraw
+// @365/w23	->	BAG!
+// @367/w22	->	BAG@
+// @342/w21	->	PROG-S-7
+// @257/w20	->	S-7
+// @339/w19	->	PROG-S-6
+// @232/w18	->	S-6
+// @336/w17	->	PROG-S-5
+// @189/w16	->	S-5
+// @333/w15	->	PROG-S-4
+// @163/w14	->	S-4
+// @330/w13	->	PROG-S-3
+// @134/w12	->	S-3
+// @327/w11	->	PROG-S-2
+// @98/w10	->	S-2
+// @356/w9	->	PROG-S-1
+// @68/w8	->	S-1
+// @245/w7	->	clean!
+// @159/w6	->	data-Big!
+// @300/w5	->	data-C!
+// @259/w4	->	data!
+// @52/w3	->	F!
+// @48/w2	->	Encode!
+// @350/w1	->	Dis
+// @272/w0	->	Button-Data
 	"NOP NOP NOP NOP" NL
 	"NOP NOP NOP NOP" NL
 	"NOP NOP NOP NOP" NL
@@ -45,11 +55,11 @@ const char code[] PROGMEM =
 	"NOP NOP NOP NOP" NL
 	"NOP NOP NOP NOP" NL
 ";" NL
-"501 VAL v23" NL
+"501 VAL v33" NL
 ": w1" NL
 	"NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP" NL
 	"0 5 API" NL
-	"v23 4 API" NL
+	"v33 4 API" NL
 	 "2 API" NL
 	"TAG NOP NOP NOP 2 API" NL
 	"TAG NOP NOP NOP 2 API" NL
@@ -58,10 +68,9 @@ const char code[] PROGMEM =
 	 "2 API" NL
 	 "0 API" NL
 ";" NL
-"VAL v24" NL
-"VAL v25" NL
-"' w1 VAL v26" NL
-"' w0 2 + VAL v27" NL
+"VAL v34" NL
+"VAL v35" NL
+"' w1 VAL v36" NL
 ": w2" NL
 	"$BF" NL
 	"OVR C!" NL
@@ -76,19 +85,19 @@ const char code[] PROGMEM =
 	 "C!" NL
 ";" NL
 ": w4" NL
-	"v26 + w2" NL
+	"v36 + w2" NL
 ";" NL
-": w5 v26 + C! ;" NL
-": w6 4 * v26 + w3 ;" NL
+": w5 v36 + C! ;" NL
+": w6 4 * v36 + w3 ;" NL
 ": w7" NL
-	"$bbbb v26 !" NL
-	"$bbbb v26 $2 + !" NL
-	"$bbbb v26 $4 + !" NL
-	"$bbbb v26 $6 + !" NL
-	"$bbbb v26 $8 + !" NL
-	"$bbbb v26 $C + !" NL
-	"$bbbb v26 $A + !" NL
-	"$bbbb v26 $E + !" NL
+	"$bbbb v36 !" NL
+	"$bbbb v36 $2 + !" NL
+	"$bbbb v36 $4 + !" NL
+	"$bbbb v36 $6 + !" NL
+	"$bbbb v36 $8 + !" NL
+	"$bbbb v36 $C + !" NL
+	"$bbbb v36 $A + !" NL
+	"$bbbb v36 $E + !" NL
 ";" NL
 ": S-1*" NL
 	"w7" NL
@@ -102,18 +111,21 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$00" NL
 	"w6" NL
+";" NL
+": w9" NL
+	"0 0 0 0 S-1*" NL
 	 "$05B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$01B4" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
  	 "$05B4" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$01B4" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-2*" NL
 	"w7" NL
@@ -133,18 +145,21 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$00" NL
 	"w5" NL
+";" NL
+": w11" NL
+	"5 0 0 0 0 S-2*" NL
 	 "$05B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$07B4" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
  	 "$05B4" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$06B4" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-3*" NL
 	"w7" NL
@@ -157,36 +172,45 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$00" NL
 	"w4" NL
+";" NL
+": w13" NL
+	"0 2 6 S-3*" NL
 	 "$05B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$06B4" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
  	 "$05B4" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$03B4" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-4*" NL
 	"0 w6" NL
 	"1 w6" NL
 	"2 w6" NL
 	"3 w6" NL
+";" NL
+": w15" NL
+	"0 0" NL
+	"0 0" NL
+	"0 0" NL
+	"0 0 S-4*" NL
 	 "$08B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$BBBB" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$BBBB" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$BBBB" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-5*" NL
 	 "$16" NL
@@ -213,18 +237,21 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$09" NL
 	"w5" NL
+";" NL
+": w17" NL
+	"0 0 0 0 0 0 S-5*" NL
 	 "$05B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$07B4" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
  	 "$05B4" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$07B4" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-6*" NL
 	"w7" NL
@@ -233,18 +260,21 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$00" NL
 	"w5" NL
+";" NL
+": w19" NL
+	"2 S-6*" NL
 	 "$05B4" NL
 	 "$00" NL
-	"v25 + !" NL
+	"v35 + !" NL
 	 "$06B4" NL
 	 "$02" NL
-	"v25 + !" NL
+	"v35 + !" NL
  	 "$BBBB" NL
 	 "$00" NL
-	"v24 + !" NL
+	"v34 + !" NL
 	 "$BBBB" NL
 	 "$02" NL
-	"v24 + !" NL
+	"v34 + !" NL
 ";" NL
 ": S-7*" NL
 	"w7" NL
@@ -254,7 +284,7 @@ const char code[] PROGMEM =
 	 "$10" NL
 	 "$04" NL
 	"w5" NL
-	 "$CA00 v23 1 RSH OR" NL
+	 "$CA00 v33 1 RSH OR" NL
 	 "$00" NL
 	"w4" NL
 	 "$12" NL
@@ -265,30 +295,53 @@ const char code[] PROGMEM =
 	"w5" NL
 	 "$08" NL
 	"w4" NL
-	 "$05B4" NL
-	 "$00" NL
-	"v25 + !" NL
-	 "$01B4" NL
-	 "$02" NL
-	"v25 + !" NL
-	 "$05B4" NL
-	 "$00" NL
-	"v24 + !" NL
-	 "$01B4" NL
-	 "$02" NL
-	"v24 + !" NL
 ";" NL
-": w15 v27 + C@ ;" NL
-": w16 v27 + C! ;" NL
-"$00 $02 w16" NL
-": w17" NL
+": w21" NL
+	"0 S-7*" NL
+	 "$05B4" NL
+	 "$00" NL
+	"v35 + !" NL
+	 "$01B4" NL
+	 "$02" NL
+	"v35 + !" NL
+	 "$05B4" NL
+	 "$00" NL
+	"v34 + !" NL
+	 "$01B4" NL
+	 "$02" NL
+	"v34 + !" NL
+";" NL
+"' w0 2 + VAL v37" NL
+": w22 v37 + C@ ;" NL
+": w23 v37 + C! ;" NL
+"$00 $02 w23" NL
+": w24" NL
+	"v37 3 + @ C@" NL
+	 "$02 *" NL
+	 "$05 +" NL
+	 "v37 + @ EXE" NL
+";" NL
+": w25" NL
+	"v36 C@ $80 =" NL
+	"IF" NL
+		"w24" NL
+	"THN" NL
+	"v37 $13 + @ C@ $80 =" NL
+	"IF" NL
+		"$BB v37 $13 + @ C!" NL
+	"THN" NL
+";" NL
+": w26" NL
 	 "$80" NL
 	 "$00" NL
 	"w5" NL
 	"100 DLY" NL
 ";" NL
 ": S-A" NL
- "w17" NL
+ "w26" NL
+	"DUP $14 === NOT IF" NL
+		"$80 v37 $13 + @ C!" NL
+	"THN" NL
 	"2 API" NL
 	"SWP 5 API 2 API" NL
 	"DUP 0 = IF" NL
@@ -299,31 +352,44 @@ const char code[] PROGMEM =
 	"2 API" NL
 	"0 API" NL
 ";" NL
-": w19 $00 2 w16 ;" NL
-"' w19 v27 3 + !" NL
-": w20" NL
-	"v27 3 + @ C@ 1 + 7 MOD DUP" NL
-	"v27 3 + @ C!" NL
-	"$60 OR 2 w16" NL
+": w28 $00 2 w23 ;" NL
+"' w28 v37 3 + !" NL
+"' w9 v37 $05 + !" NL
+"' w11 v37 $07 + !" NL
+"' w13 v37 $09 + !" NL
+"' w15 v37 $0B + !" NL
+"' w17 v37 $0D + !" NL
+"' w19 v37 $0F + !" NL
+"' w21 v37 $11 + !" NL
+": w29" NL
+	"v37 3 + @ C@ 1 + 7 MOD DUP" NL
+	"v37 3 + @ C!" NL
+	"$60 OR 2 w23" NL
+	"w24" NL
 ";" NL
-": w21" NL
+": w30" NL
+	"TAG" NL
 	"6 IN 0 = DUP" NL
 	"7 IN 0 = DUP" NL
-	"0 w15 NOT AND" NL
+	"0 w22 NOT AND" NL
 	"IF" NL
-		"w19" NL
+		"w28" NL
+		"w25" NL
 	"THN" NL
-	"0 w16" NL
-	"1 w15 NOT AND" NL
+	"0 w23" NL
+	"1 w22 NOT AND" NL
 	"IF" NL
-		"w20" NL
+		"w29" NL
 	"THN" NL
-	"1 w16" NL
+	"1 w23" NL
 ";" NL
-": AC@ 2 w15 ;" NL
+"v37 $13 + !" NL
+": BA@ w22 ;" NL
+": RST w25 ;" NL
+"w9" NL
 "500 DLY" NL
 "100 1 TMI w1" NL
-"10 0 TMI w21" NL
+"10 0 TMI w30" NL
 "1 TME" NL
 ;
 #endif
