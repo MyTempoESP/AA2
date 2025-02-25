@@ -1,32 +1,27 @@
 package lcdlogger
 
 import (
+	"bytes"
 	"context"
 	"log"
+	"regexp"
 	"time"
 
 	c "aa2/constant"
 
-	"github.com/MyTempoesp/flick"
+	"aa2/flick"
 )
 
 type SerialDisplay struct {
-	Forth *flick.MyTempo_Forth
+	Forth *flick.Forth
 
 	Screen int
-
-	actionButtonLHTime time.Time // Last Held Timestamp
-	actionButtonHeld   bool
-	action             Action
-
-	altButtonLHTime time.Time
-	altButtonHeld   bool
-	altAction       Action
+	action Action
 }
 
 func NewSerialDisplay() (display SerialDisplay, err error) {
 
-	f, err := flick.NewForth("/dev/ttyUSB0")
+	f, err := flick.NewForth("/dev/ttyACM1", 2*time.Second)
 
 	if err != nil {
 
@@ -42,7 +37,6 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 	display.Forth = &f
 
 	display.action = -1
-	display.altAction = -1
 
 	return
 }
@@ -58,7 +52,7 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 
 			hasKey = false
 
-			return
+			goto done
 		default:
 			{
 				res, err := display.Forth.Send(c.FORTH_BTN_PRESSED)
@@ -68,48 +62,60 @@ func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 					continue
 				}
 
-				if res[0] == '-' {
+				if res[0] == '1' {
 
 					hasKey = true
 
-					return
+					goto done
 				}
 			}
 		}
 	}
+
+done:
+	display.Forth.Send("0 bac ! 0 ba2 !")
+
+	return
 }
 
 func (display *SerialDisplay) SwitchScreens() {
 
 	// TODO: onrelease actions
 
-	res, err := display.Forth.Send("bac @ .")
+	res, err := display.Forth.Send("ba@ b2@")
 
 	if err != nil {
 
 		return
 	}
 
-	defer display.Forth.Send("0 bac !")
+	res = bytes.TrimSuffix(res, []byte{' ', 'o', 'k', '\n'})
 
-	if res[0] == '-' { // onrelease
+	m, err := regexp.Match("^[0-1] [0-1]$", res)
 
-		log.Println("Released!")
+	if err != nil || !m {
 
-		lht := display.actionButtonLHTime
+		log.Printf("Unexpected output, expected '^[0-1] [0-1]$', got '%s'\n", res)
 
-		if display.actionButtonHeld && time.Now().After(lht.Add(time.Millisecond*2300)) { // XXX: magic number
+		return
+	}
 
-			log.Println("+ Action!")
+	if res[0] == '1' {
 
-			display.action = Action(display.Screen)
+		log.Println("Switching screen!")
 
-		} else {
-			display.Screen++
-			display.Screen %= SCREEN_COUNT
-		}
+		display.Screen++
+		display.Screen %= SCREEN_COUNT
 
-		display.actionButtonLHTime = time.Now().Add(time.Hour * 1)
-		display.actionButtonHeld = false // button released
+		display.Forth.Send("0 bac !")
+	}
+
+	if res[2] == '1' {
+
+		log.Println("Confirm!")
+
+		display.action = Action(display.Screen)
+
+		display.Forth.Send("0 ba2 !")
 	}
 }

@@ -1,12 +1,5 @@
 package lcdlogger
 
-import (
-	"time"
-	"log"
-
-	c "aa2/constant"
-)
-
 const (
 	ACTION_TAGS  = SCREEN_TAGS
 	ACTION_WIFI  = SCREEN_WIFI
@@ -33,32 +26,4 @@ func (display *SerialDisplay) Action() (action Action, hasAction bool) {
 func (display *SerialDisplay) hasAction() bool {
 
 	return display.action >= 0
-}
-
-func (display *SerialDisplay) HandleActionButton() {
-
-	if display.actionButtonHeld {
-
-		return
-	}
-
-	if display.hasAction() {
-
-		return
-	}
-
-	res, err := display.Forth.Send(c.FORTH_BTN_PRESSED)
-
-	if err != nil {
-
-		return
-	}
-
-	if res[0] == '-' {
-
-		log.Println("Clicked!")
-
-		display.actionButtonLHTime = time.Now()
-		display.actionButtonHeld = true
-	}
 }

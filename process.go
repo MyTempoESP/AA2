@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"aa2/file"
+	"aa2/flick"
 	"aa2/intSet"
 	"aa2/lcdlogger"
 	"aa2/pinger"
 	"aa2/usb"
-	"github.com/MyTempoesp/flick"
 )
 
 func (a *Ay) Process() {
@@ -171,7 +171,6 @@ func (a *Ay) Process() {
 				display.ScreenInfoEquip(NUM_EQUIP)
 			}
 
-			display.HandleActionButton()
 			display.SwitchScreens()
 
 			if action, hasAction := display.Action(); hasAction {
@@ -231,36 +230,6 @@ func (a *Ay) Process() {
 					}
 				default:
 					continue // no action
-				}
-
-				<-time.After(1 * time.Second) // min 1 sec
-
-				if err != nil {
-
-					display.ScreenErr()
-
-					<-time.After(5 * time.Second)
-
-					continue
-				}
-			}
-
-			display.HandleAltActionButton()
-			display.ProcessAltAction()
-
-			if action, hasAction := display.AltAction(); hasAction {
-
-				display.ScreenProgress()
-
-				err = nil
-
-				switch action {
-				case lcdlogger.ALT_ACTION_RESTART:
-					err = RestartComputer()
-
-					if err == nil {
-						select {} // hang
-					}
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec

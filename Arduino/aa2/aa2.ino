@@ -62,11 +62,11 @@ const char code[] PROGMEM =          ///< define preload Forth code here
   "VAR bs2\n"
   ": btn 6 IN 0 = ;\n"
   ": bt2 7 IN 0 = ;\n"
-  ": bfy DUP ROT SWP NOT AND ;\n" // ( btn bst -- bac bst_new )
-  ": pr1 bac @ NOT IF bst @ btn bfy bac ! bst ! THN ;\n"
-  ": pr2 ba2 @ NOT IF bs2 @ bt2 bfy ba2 ! bs2 ! THN ;\n"
-  ": chb pr1 pr2 ;\n"
-  "10 0 TMI chb 1 TME\n"
+  ": b1 btn DUP bst @ NOT AND IF 1 bac ! THN bst ! ;\n"
+  ": b2 bt2 DUP bs2 @ NOT AND IF 1 ba2 ! THN bs2 ! ;\n"
+  ": chb b1 b2 ;\n"
+  ": ba@ bac @ . ;\n"
+  ": b2@ ba2 @ . ;\n"
 
 // Screen.fth
   ": lbl  5   API ;\n"
@@ -94,6 +94,8 @@ const char code[] PROGMEM =          ///< define preload Forth code here
     "a 1 nui sep fni spc a 2 nui sep fnm "
     "a 3 nui sep fni spc a 4 nui sep fnm "
   ";\n"
+
+  "10 0 TMI chb 1 TME\n"
 ;
 
 #define VIRT_SCR_COLS 20
@@ -205,7 +207,6 @@ forth_number()
 void
 forth_label()
 {
-  char* buf;
   int v;
 
   if ((v = n4_pop()) >= LABEL_COUNT || v < 0) return;
@@ -221,11 +222,14 @@ forth_line_feed()
   for (; g_x < VIRT_SCR_COLS - 1; g_x++)
     g_virt_scr[g_y][g_x] = ' ';
 
-  g_x++;
   g_virt_scr[g_y][g_x] = '\0';
 
   g_x = 0;
-  if (g_y++ >= (VIRT_SCR_ROWS - 1)) g_y = VIRT_SCR_ROWS - 1;
+
+  g_y++;
+
+  if (g_y >= (VIRT_SCR_ROWS - 1))
+    g_y = VIRT_SCR_ROWS - 1;
 }
 
 void
